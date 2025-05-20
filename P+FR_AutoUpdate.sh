@@ -24,7 +24,7 @@ verify_script_update() {
 
     if [[ "$remote_version" != "$local_version" ]]; then
         echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
-        # (Optionnel) Afficher les changements récents
+# (Optionnel) Afficher les changements récents
 echo -e "\n📝 Changes in version $remote_version:"
 case "$remote_version" in
   "1.0.1")
