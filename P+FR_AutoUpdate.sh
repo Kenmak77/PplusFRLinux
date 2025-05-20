@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_VERSION="1.0.0"
+
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
 APPIMAGE_URL="https://pplusfr.org/P%2BFR.AppImage"
@@ -11,8 +13,40 @@ DOLPHIN_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Dolphi
 KEY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Hotkeys.ini"
 WII_REMOTE="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/WiimoteNew.ini"
 ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
-SCRIPT_NAME="install_pfr.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2BFR_AutoUpdate.sh"
+SCRIPT_NAME="P+FR_AutoUpdate.sh"
 DESKTOP_FILE="$HOME/Desktop/P+FR.desktop"
+
+# 🔹 Vérifie si le script local est à jour
+verify_script_update() {
+    local tmp_script="$(mktemp)"
+    wget -q -O "$tmp_script" "$SCRIPT_URL"
+    remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" | cut -d '"' -f2)
+    local_version="$SCRIPT_VERSION"
+
+    if [[ "$remote_version" != "$local_version" ]]; then
+        echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
+        read -rp "Do you want to update it automatically? (y/n): " update_script
+        if [[ "$update_script" == "y" ]]; then
+            wget -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
+            echo "✅ Script updated."
+            read -rp "Do you want to relaunch the updated script now? (y/n): " relaunch
+            if [[ "$relaunch" == "y" ]]; then
+                bash "$INSTALL_DIR/$SCRIPT_NAME"
+                exit 0
+            else
+                echo "❌ Please relaunch the updated script manually."
+                exit 0
+            fi
+        else
+            echo "❌ Please update the script before continuing."
+            exit 1
+        fi
+    fi
+    rm -f "$tmp_script"
+}
+
+verify_script_update
 
 # 🔹 Nettoyage partiel si interruption
 trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
@@ -87,6 +121,7 @@ extract_files() {
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
 
     mkdir -p "$INSTALL_DIR/Wii"
+    rm -rf "$INSTALL_DIR/Load"
     mkdir -p "$INSTALL_DIR/Load"
     mkdir -p "$INSTALL_DIR/Launcher"
     mkdir -p "$INSTALL_DIR/Config"
@@ -95,11 +130,11 @@ extract_files() {
     mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/"
     mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher"
 
-    wget -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_URL"
-    wget -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_URL"
-    wget -O "$INSTALL_DIR/Config/Hotkeys.ini" "$KEY_URL"
-    wget -O "$INSTALL_DIR/Config/WiimoteNew.ini" "$WII_REMOTE"
-    wget -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
+    [[ -f "$INSTALL_DIR/Config/GFX.ini" ]] || wget -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_URL"
+    [[ -f "$INSTALL_DIR/Config/Dolphin.ini" ]] || wget -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_URL"
+    [[ -f "$INSTALL_DIR/Config/Hotkeys.ini" ]] || wget -O "$INSTALL_DIR/Config/Hotkeys.ini" "$KEY_URL"
+    [[ -f "$INSTALL_DIR/Config/WiimoteNew.ini" ]] || wget -O "$INSTALL_DIR/Config/WiimoteNew.ini" "$WII_REMOTE"
+    [[ -f "$INSTALL_DIR/P+ fr.png" ]] || wget -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
 
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
@@ -125,9 +160,9 @@ end() {
     chmod +x "$DESKTOP_FILE"
     echo -e "\n✅ The 'P+FR' shortcut has been created on the Desktop."
     echo "📁 The build is installed in: $INSTALL_DIR"
-    echo "⚠️ Keep this script if .desktot is delet, launch it and a new one is creat"
+    echo "⚠️ Keep this script if .deskpot is delet, launch it and a new one is creat"
     echo "🎮 Launch P+FR from the desktop shortcut. Enjoy!"
-    read -p "Press any key and enjoy P+FR..." -n1 -s
+    read -p "Press any key to start P+FR..." -n1 -s
 }
 
 # 🔹 Installation complète
@@ -184,4 +219,3 @@ else
     end
     launch_app
 fi
-
