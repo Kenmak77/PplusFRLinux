@@ -17,7 +17,7 @@ SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2BFR_
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 DESKTOP_FILE="$HOME/Desktop/P+FR.desktop"
 
-# 🔹 Vérifie si le script local est à jour
+# 🔹 Check if the local script is up to date
 verify_script_update() {
     local tmp_script="$(mktemp)"
     wget -q -O "$tmp_script" "$SCRIPT_URL"
@@ -26,6 +26,24 @@ verify_script_update() {
 
     if [[ "$remote_version" != "$local_version" ]]; then
         echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
+
+        # Optional changelog display based on version
+        echo -e "\n📝 Changes in version $remote_version:"
+        case "$remote_version" in
+          "1.0.1")
+            echo "- Updated script auto-update mechanism"
+            echo "- Now avoids overwriting config files if they already exist"
+            echo "- Added script version check via SCRIPT_VERSION"
+            ;;
+          "1.0.2")
+            echo "- Created the Desktop shortcut if deleted"
+            echo "- Added script changelog display during updates"
+            ;;
+          *)
+            echo "- No changelog available for this version."
+            ;;
+        esac
+
         read -rp "Do you want to update it automatically? (y/n): " update_script
         if [[ "$update_script" == "y" ]]; then
             wget -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
@@ -48,9 +66,9 @@ verify_script_update() {
 
 verify_script_update
 
-# 🔹 Nettoyage partiel si interruption
-trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
+# 🔹 Partial cleanup if interrupted
 
+trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
 # 🔹 Récupère le hash local de l'AppImage
 get_local_hash() {
     [[ -f "$APPIMAGE_PATH" ]] && sha1sum "$APPIMAGE_PATH" | awk '{print $1}'
@@ -162,7 +180,7 @@ end() {
     echo "📁 The build is installed in: $INSTALL_DIR"
     echo "⚠️ Keep this script if .deskpot is delet, launch it and a new one is creat"
     echo "🎮 Launch P+FR from the desktop shortcut. Enjoy!"
-    read -p "Press any key to start P+FR..." -n1 -s
+    read -p "Press any key to start P+FR and don't forget add Brawl by Default'..." -n1 -s
 }
 
 # 🔹 Installation complète
