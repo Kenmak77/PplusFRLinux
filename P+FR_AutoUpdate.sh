@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # CHANGELOG
-# v1.0.2 - Link toward .json
+# v1.0.3 - Link toward .json, get_local_hash fix
+ 
 
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.0.3"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -50,6 +51,11 @@ verify_script_update() {
 }
 
 verify_script_update
+
+# 🔹 Get the local hash of the AppImage
+get_local_hash() {
+    [[ -f "$APPIMAGE_PATH" ]] && sha1sum "$APPIMAGE_PATH" | awk '{print $1}'
+}
 
 # 🔹 Cleanup if interrupted
 trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
