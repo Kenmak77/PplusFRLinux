@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# CHANGELOG
+# v1.0.1 - Link .json
+# v1.1.0 - Added auto-update check, dynamic URL via update.json
+# v1.2.0 - Fixed icon name, added hash check, cleanup if cancelled
+
 SCRIPT_VERSION="1.0.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
@@ -15,7 +20,7 @@ SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2BFR_
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 DESKTOP_FILE="$HOME/Desktop/P+FR.desktop"
 
-# 🔹 Vérifie si le script local est à jour
+# 🔹 Check if local script is up to date
 verify_script_update() {
     local tmp_script="$(mktemp)"
     wget -q -O "$tmp_script" "$SCRIPT_URL"
@@ -24,20 +29,8 @@ verify_script_update() {
 
     if [[ "$remote_version" != "$local_version" ]]; then
         echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
-# (Optionnel) Afficher les changements récents
-echo -e "\n📝 Changes in version $remote_version:"
-case "$remote_version" in
-  "1.0.1")
-    echo "- Updated link .json"
-    ;;
-  "1.0.2")
-    echo "- Created the Desktop shortcut if deleted"
-    echo "- Added script changelog display during updates"
-    ;;
-  *)
-    echo "- No changelog available for this version."
-    ;;
-esac
+        changelog=$(grep '^# v' "$tmp_script" | head -5)
+        echo -e "\n📝 Changelog (recent updates):\n$changelog"
         read -rp "Do you want to update it automatically? (y/n): " update_script
         if [[ "$update_script" == "y" ]]; then
             wget -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
@@ -60,13 +53,12 @@ esac
 
 verify_script_update
 
-# 🔹 Nettoyage partiel si interruption
+# 🔹 Cleanup if interrupted
 trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
 
-# 🔹 Récupère l'URL de l'AppImage et du ZIP depuis le JSON distant
+# 🔹 Retrieve dynamic URLs from update.json
 APPIMAGE_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-linux-appimage"\s*:\s*"\K[^"]+')
 ZIP_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-page-windows"\s*:\s*"\K[^"]+')
-
 
 # 🔹 Récupère le hash distant depuis update.json
 get_remote_hash() {
