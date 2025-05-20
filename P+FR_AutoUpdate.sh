@@ -1,11 +1,9 @@
 #!/bin/bash
 
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.0.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
-APPIMAGE_URL="https://pplusfr.org/P%2BFR.AppImage"
-ZIP_URL="https://pplusfr.org/P%2BFR_Netplay.zip"
 ZIP_PATH="$INSTALL_DIR/P+FR_Netplay.zip"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
 GFX_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/GFX.ini"
@@ -17,7 +15,7 @@ SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2BFR_
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 DESKTOP_FILE="$HOME/Desktop/P+FR.desktop"
 
-# 🔹 Check if the local script is up to date
+# 🔹 Vérifie si le script local est à jour
 verify_script_update() {
     local tmp_script="$(mktemp)"
     wget -q -O "$tmp_script" "$SCRIPT_URL"
@@ -26,24 +24,20 @@ verify_script_update() {
 
     if [[ "$remote_version" != "$local_version" ]]; then
         echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
-
-        # Optional changelog display based on version
-        echo -e "\n📝 Changes in version $remote_version:"
-        case "$remote_version" in
-          "1.0.1")
-            echo "- Updated script auto-update mechanism"
-            echo "- Now avoids overwriting config files if they already exist"
-            echo "- Added script version check via SCRIPT_VERSION"
-            ;;
-          "1.0.2")
-            echo "- Created the Desktop shortcut if deleted"
-            echo "- Added script changelog display during updates"
-            ;;
-          *)
-            echo "- No changelog available for this version."
-            ;;
-        esac
-
+        # (Optionnel) Afficher les changements récents
+echo -e "\n📝 Changes in version $remote_version:"
+case "$remote_version" in
+  "1.0.1")
+    echo "- Updated link .json"
+    ;;
+  "1.0.2")
+    echo "- Created the Desktop shortcut if deleted"
+    echo "- Added script changelog display during updates"
+    ;;
+  *)
+    echo "- No changelog available for this version."
+    ;;
+esac
         read -rp "Do you want to update it automatically? (y/n): " update_script
         if [[ "$update_script" == "y" ]]; then
             wget -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
@@ -66,13 +60,13 @@ verify_script_update() {
 
 verify_script_update
 
-# 🔹 Partial cleanup if interrupted
-
+# 🔹 Nettoyage partiel si interruption
 trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
-# 🔹 Récupère le hash local de l'AppImage
-get_local_hash() {
-    [[ -f "$APPIMAGE_PATH" ]] && sha1sum "$APPIMAGE_PATH" | awk '{print $1}'
-}
+
+# 🔹 Récupère l'URL de l'AppImage et du ZIP depuis le JSON distant
+APPIMAGE_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-linux-appimage"\s*:\s*"\K[^"]+')
+ZIP_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-page-windows"\s*:\s*"\K[^"]+')
+
 
 # 🔹 Récupère le hash distant depuis update.json
 get_remote_hash() {
