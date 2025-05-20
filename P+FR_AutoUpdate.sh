@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # CHANGELOG
-# v1.0.1 - Link .json
-# v1.1.0 - Added auto-update check, dynamic URL via update.json
-# v1.2.0 - Fixed icon name, added hash check, cleanup if cancelled
+# v1.0.1 - Link toward .json
 
 SCRIPT_VERSION="1.0.1"
 
