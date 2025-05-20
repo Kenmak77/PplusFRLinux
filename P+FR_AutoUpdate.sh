@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # CHANGELOG
-# v1.0.3 - Link toward .json, get_local_hash fix
+# v1.0.4 - Link toward .json, get_local_hash fix, Fix desktop
  
 
-SCRIPT_VERSION="1.0.3"
+SCRIPT_VERSION="1.0.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -148,20 +148,21 @@ extract_files() {
     rm -f "$ZIP_PATH"
 }
 
-# 🔹 Créer le raccourci sur le bureau
+# 🔹 Create desktop shortcut
 create_desktop_entry() {
     mkdir -p "$HOME/.local/share/applications"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
 Name=P+FR
-Exec=$INSTALL_DIR/$SCRIPT_NAME
-Icon=$INSTALL_DIR/P+ fr.png
-Terminal=false
+Exec=sh -c '\$INSTALL_DIR/\$SCRIPT_NAME'
+Icon=\$INSTALL_DIR/P+ fr.png
+Terminal=true
 Categories=Game;
 EOF
     chmod +x "$DESKTOP_FILE"
 }
+
 
 # 🔹 Message de fin
 end() {
