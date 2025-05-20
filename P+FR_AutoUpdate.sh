@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # CHANGELOG
-# v1.0.1 - Link toward .json
+# v1.0.2 - Link toward .json
 
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.0.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
