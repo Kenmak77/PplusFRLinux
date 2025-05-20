@@ -4,7 +4,7 @@
 # v1.0.4 - Link toward .json, get_local_hash fix, Fix desktop
  
 
-SCRIPT_VERSION="1.0.4"
+SCRIPT_VERSION="1.0.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -155,8 +155,8 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=P+FR
-Exec=sh -c '\$INSTALL_DIR/\$SCRIPT_NAME'
-Icon=\$INSTALL_DIR/P+ fr.png
+Exec=sh -c '$INSTALL_DIR\$SCRIPT_NAME'
+Icon=$INSTALL_DIR\P+ fr.png
 Terminal=true
 Categories=Game;
 EOF
