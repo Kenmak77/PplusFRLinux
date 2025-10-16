@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.1
+# Version : 2.0.2
 #
 # CHANGELOG
-# v2.0.1
+# v2.0.2
 # - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
 # - Nettoyage et simplification du code
 # - Multi-distribution (apt, pacman, dnf)
@@ -149,9 +149,18 @@ download_zip() {
 }
 
 # Télécharge la SD avec fallback aria2 → rclone → wget
+# Télécharge la SD avec fallback aria2 → rclone → wget
 download_sd() {
     echo "⬇️ Téléchargement de la SD..."
     mkdir -p "$INSTALL_DIR/Wii"
+
+    # Supprime l'ancien fichier avant téléchargement
+    if [[ -f "$SD_PATH" ]]; then
+        echo "🧹 Suppression de l'ancienne SD..."
+        rm -f "$SD_PATH"
+    fi
+
+    # Tentatives de téléchargement avec fallback
     if command -v aria2c &>/dev/null; then
         aria2c -x 16 -s 16 -d "$INSTALL_DIR/Wii" -o "sd.raw" "$SD_URL" && return
         echo "⚠️ aria2 a échoué, tentative avec rclone..."
@@ -160,6 +169,7 @@ download_sd() {
         rclone copyurl "$SD_URL" "$SD_PATH" --multi-thread-streams=8 && return
         echo "⚠️ rclone a échoué, tentative avec wget..."
     fi
+
     wget -O "$SD_PATH" "$SD_URL"
 }
 
