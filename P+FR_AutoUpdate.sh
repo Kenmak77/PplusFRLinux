@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.6
+# Version : 2.1.7
 #
 # CHANGELOG
-# v2.1.6
+# v2.1.7
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.6"
+SCRIPT_VERSION="2.1.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -184,18 +184,18 @@ download_sd() {
 
 
 # ---------------------------
-# 🧰 EXTRACTION DU BUILD (Load / Launcher)
+# 🧰 EXTRACTION DU BUILD (load / launcher)
 # ---------------------------
 extract_zip() {
     echo "📦 Extraction du build depuis $ZIP_PATH..."
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
 
-    # Recherche automatique du dossier User/ (nouvelle ou ancienne structure)
+    # Recherche automatique du dossier 'user/' (nouvelle ou ancienne structure)
     local user_dir
     user_dir=$(find "$INSTALL_DIR/unzipped" -type d -path "*/user" | head -1)
 
     if [[ -z "$user_dir" ]]; then
-        echo "❌ Impossible de trouver le dossier 'User' dans le ZIP."
+        echo "❌ Impossible de trouver le dossier 'user' dans le ZIP."
         rm -rf "$INSTALL_DIR/unzipped"
         return 1
     fi
@@ -205,7 +205,7 @@ extract_zip() {
     # Création des dossiers cibles
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
 
-    # Copie des dossiers Load et Launcher depuis le bon emplacement
+    # Copie des dossiers load et launcher depuis le bon emplacement
     if [[ -d "$user_dir/Load" ]]; then
         echo "📦 Copie de Load/"
         cp -r "$user_dir/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
@@ -222,6 +222,7 @@ extract_zip() {
 
     echo "✅ Extraction terminée."
 }
+
 
 
 
