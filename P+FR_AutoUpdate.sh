@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.0
+# Version : 2.2.2
 #
 # CHANGELOG
-# v2.2.0
+# v2.2.2
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.0"
+SCRIPT_VERSION="2.2.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -40,6 +40,29 @@ else
     mkdir -p "$DESKTOP_PATH"
 fi
 DESKTOP_FILE="$DESKTOP_PATH/P+FR.desktop"
+
+# ---------------------------
+# 🧩 CRÉATION DU FICHIER GFX.INI SI ABSENT
+# ---------------------------
+fix_gfx_ini() {
+    local gfx_ini="$INSTALL_DIR/Config/GFX.ini"
+
+    mkdir -p "$INSTALL_DIR/Config"
+
+    if [[ ! -f "$gfx_ini" ]]; then
+        echo "🆕 Création de GFX.ini avec les paramètres par défaut..."
+        {
+            echo "[Settings]"
+            echo "InternalResolution = 3"
+            echo "MSAA = 0x00000002"
+            echo "SSAA = True"
+            echo "ShaderCompilationMode = 1"
+            echo "WaitForShadersBeforeStarting = True"
+        } > "$gfx_ini"
+    else
+        echo "ℹ️ GFX.ini déjà présent — aucune modification."
+    fi
+}
 
 
 # ---------------------------
@@ -308,14 +331,6 @@ main() {
     local updated=false
 
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Nouvelle version AppImage détectée."
-        download_appimage
-        updated=true
-    else
-        echo "✅ AppImage à jour."
-    fi
-
-    if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
     echo "🆕 Nouvelle version AppImage détectée."
     download_appimage
     echo "⬇️ Téléchargement de la SD associée à cette version..."
@@ -350,6 +365,7 @@ fi
     fi
     
     fix_dolphin_ini
+    fix_gfx_ini
     launch_app
     exit 0
 }
