@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.8
+# Version : 2.2.0
 #
 # CHANGELOG
-# v2.1.8
+# v2.2.0
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.8"
+SCRIPT_VERSION="2.2.0"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -223,14 +223,25 @@ extract_zip() {
     echo "✅ Extraction terminée."
 }
 
+# ---------------------------
+# 🧩 CRÉATION DU FICHIER DOLPHIN.INI SI ABSENT
+# ---------------------------
 fix_dolphin_ini() {
     local dolphin_ini="$INSTALL_DIR/Config/Dolphin.ini"
-    if [[ -f "$dolphin_ini" ]]; then
-        echo "🧽 Suppression de 'WiiSDCardPath' dans Dolphin.ini..."
-        sed -i '/^WiiSDCardPath/d' "$dolphin_ini"
+
+    mkdir -p "$INSTALL_DIR/Config"
+
+    # Crée Dolphin.ini uniquement s'il n'existe pas
+    if [[ ! -f "$dolphin_ini" ]]; then
+        echo "🆕 Création de Dolphin.ini avec le thème par défaut..."
+        {
+            echo "[Interface]"
+            echo "ThemeName = Clean Blue"
+        } > "$dolphin_ini"
+    else
+        echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
     fi
 }
-
 
 # ---------------------------
 # 🖥️ RACCOURCI .DESKTOP
@@ -288,14 +299,11 @@ main() {
     install_if_missing unzip
     install_if_missing curl
 
-    local local_app_hash local_sd_hash
+    local local_app_hash 
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
-    local_sd_hash=$(get_local_hash "$SD_PATH")
+
 
     mkdir -p "$INSTALL_DIR"
-
-    echo "🔍 Hash SD local (512MB) : $local_sd_hash"
-    echo "🔍 Hash SD distant       : $SD_HASH"
 
     local updated=false
 
