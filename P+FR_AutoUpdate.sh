@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.4
+# Version : 2.0.5
 #
 # CHANGELOG
-# v2.0.4
+# v2.0.5
 # - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
 # - Nettoyage et simplification du code
 # - Multi-distribution (apt, pacman, dnf)
@@ -22,7 +22,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.4"
+SCRIPT_VERSION="2.0.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -110,15 +110,16 @@ verify_script_update() {
 # 🌐 RÉCUPÉRATION DES DONNÉES JSON
 # ---------------------------
 get_json_value() {
-    local json_url="$1"
+     local json_url="$1"
     local key="$2"
-    curl -s "$json_url" | grep -oP "\"$key\"\\s*:\\s*\"\\K[^\"]+"
+    curl -s "$json_url" | grep -oP "\"${key//-/\\-}\"\\s*:\\s*\"\\K[^\"]+"
 }
+
 
 # Récupération des URLs depuis update.json et update2.json
 APPIMAGE_URL=$(get_json_value "$UPDATE_JSON" "download-linux-appimage")
 SD_URL=$(get_json_value "$UPDATE_JSON" "download-sd")
-SD_HASH=$(get_json_value "$UPDATE_JSON" "sd-hash-partial")
+SD_HASH=$(get_json_value "$UPDATE2_JSON" "sd-hash-partial")
 ZIP_URL=$(curl -s "$UPDATE2_JSON" | grep -oP '"browser_download_url"\s*:\s*"\K[^"]+' | head -1)
 REMOTE_HASH=$(get_json_value "$UPDATE2_JSON" "hash-linux")
 
@@ -259,28 +260,45 @@ main() {
     echo "🔍 Hash SD local (512MB) : $local_sd_hash"
     echo "🔍 Hash SD distant       : $SD_HASH"
 
+    local updated=false
+
     # Vérifie si AppImage ou SD ont changé
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
         echo "🆕 Nouvelle version AppImage détectée."
         download_appimage
+        updated=true
+    else
+        echo "✅ AppImage à jour."
     fi
 
     if [[ "$local_sd_hash" != "$SD_HASH" ]]; then
         echo "🆕 Nouvelle version de la SD détectée."
         download_sd
+        updated=true
+    else
+        echo "✅ SD à jour."
     fi
 
     if [[ ! -d "$INSTALL_DIR/Load" ]]; then
         download_zip
         extract_zip
+        updated=true
     fi
 
     cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
     create_desktop_entry
 
-    echo -e "\n✅ Installation complète ! Lancement du jeu..."
+    echo -e "\n✅ Installation complète !"
+
+    # 🔹 Si au moins une mise à jour a eu lieu → pause 2s puis lancement
+    if [[ "$updated" == true ]]; then
+        echo "🚀 Lancement de P+FR..."
+        sleep 2
+    fi
+
     launch_app
 }
+
 
 
 # ---------------------------
