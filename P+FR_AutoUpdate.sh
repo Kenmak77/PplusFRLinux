@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.2
+# Version : 2.1.3
 #
 # CHANGELOG
-# v2.1.2
+# v2.1.3
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.2"
+SCRIPT_VERSION="2.1.3"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -226,20 +226,19 @@ launch_app() {
     echo "➡️  AppImage : $APPIMAGE_PATH"
     echo "➡️  Userdir : $INSTALL_DIR"
 
-    # ✅ Se placer dans le bon dossier pour que ./Wii/sd.raw soit valide
+    # ✅ Se placer dans le dossier d'installation pour que ./Wii/sd.raw soit valide
     cd "$INSTALL_DIR" || {
         echo "❌ Impossible d'accéder à $INSTALL_DIR"
         exit 1
     }
 
-    # ✅ Lancement stable via nohup (préserve le processus sans terminal)
-    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
+    # 🔹 Lancer exactement comme dans ton ancien script
+    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
 
-    echo "🚀 Project+ FR lancé avec succès."
-    sleep 1
+    # ⏳ Laisse le temps au processus de démarrer
+    sleep 2
     exit 0
 }
-
 
 
 
