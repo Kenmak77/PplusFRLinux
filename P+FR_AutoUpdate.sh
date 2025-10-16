@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1
+# Version : 2.1.1
 #
 # CHANGELOG
-# v2.1
+# v2.1.1
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1"
+SCRIPT_VERSION="2.1.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -221,15 +221,25 @@ EOF
 # ---------------------------
 launch_app() {
     chmod +x "$APPIMAGE_PATH"
+
     echo "🎮 Démarrage de Project+ FR..."
     echo "➡️  AppImage : $APPIMAGE_PATH"
     echo "➡️  Userdir : $INSTALL_DIR"
 
-    echo "📂 Répertoire courant avant lancement : $(pwd)"
+    # ✅ Se placer dans le dossier d'installation pour que ./Wii/sd.raw soit valide
+    cd "$INSTALL_DIR" || {
+        echo "❌ Impossible d'accéder à $INSTALL_DIR"
+        exit 1
+    }
+
+    # Lancement via setsid (plus fiable pour AppImage détachée)
     setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
+
+    # Petit délai pour éviter la fermeture instantanée du terminal
     sleep 2
     exit 0
 }
+
 
 
 
