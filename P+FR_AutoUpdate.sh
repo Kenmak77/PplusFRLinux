@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.2
+# Version : 2.0.3
 #
 # CHANGELOG
-# v2.0.2
+# v2.0.3
 # - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
 # - Nettoyage et simplification du code
 # - Multi-distribution (apt, pacman, dnf)
@@ -22,7 +22,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.2"
+SCRIPT_VERSION="2.0.3"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -128,9 +128,24 @@ REMOTE_HASH=$(get_json_value "$UPDATE2_JSON" "hash-linux")
 # ---------------------------
 get_local_hash() {
     if [[ -f "$1" ]]; then
-        sha256sum "$1" 2>/dev/null | awk '{print $1}'
+        case "$1" in
+            *".AppImage")
+                # 🧩 AppImage → hash SHA-1 complet (comme "hash-linux")
+                sha1sum "$1" 2>/dev/null | awk '{print $1}'
+                ;;
+            *"sd.raw")
+                # 💾 SD → hash SHA-256 partiel (512 MB = 536 870 912 octets)
+                head -c $((512*1024*1024)) "$1" | sha256sum | awk '{print $1}'
+                ;;
+            *)
+                # 🔹 Tout autre fichier → hash SHA-256 complet
+                sha256sum "$1" 2>/dev/null | awk '{print $1}'
+                ;;
+        esac
     fi
 }
+
+
 
 
 # ---------------------------
@@ -237,6 +252,9 @@ main() {
     local_sd_hash=$(get_local_hash "$SD_PATH")
 
     mkdir -p "$INSTALL_DIR"
+
+    echo "🔍 Hash SD local (512MB) : $local_sd_hash"
+    echo "🔍 Hash SD distant       : $SD_HASH"
 
     # Vérifie si AppImage ou SD ont changé
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
