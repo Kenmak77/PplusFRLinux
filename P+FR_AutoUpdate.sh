@@ -5,24 +5,20 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.6
+# Version : 2.0.7
 #
 # CHANGELOG
-# v2.0.6
-# - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
-# - Nettoyage et simplification du code
-# - Multi-distribution (apt, pacman, dnf)
-# - Vérifie AppImage et SD séparément
-# - Télécharge le build (.zip) depuis update2.json
-# - Création automatique du raccourci .desktop
-# - Ecrase l'ancien SD.raw
+# v2.0.7
+# - Lancement AppImage corrigé (plus de fermeture immédiate)
+# - Hash SD pris depuis update2.json
+# - Vérification propre SD + AppImage
+# - Téléchargement stable et multi-distro
 # ======================================================
-
 
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.6"
+SCRIPT_VERSION="2.0.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -110,11 +106,10 @@ verify_script_update() {
 # 🌐 RÉCUPÉRATION DES DONNÉES JSON
 # ---------------------------
 get_json_value() {
-     local json_url="$1"
+    local json_url="$1"
     local key="$2"
     curl -s "$json_url" | grep -oP "\"${key//-/\\-}\"\\s*:\\s*\"\\K[^\"]+"
 }
-
 
 # Récupération des URLs depuis update.json et update2.json
 APPIMAGE_URL=$(get_json_value "$UPDATE_JSON" "download-linux-appimage")
@@ -150,37 +145,29 @@ get_local_hash() {
 }
 
 
-
-
 # ---------------------------
 # 📦 TÉLÉCHARGEMENTS
 # ---------------------------
 
-# Télécharge AppImage (wget uniquement)
 download_appimage() {
     echo "⬇️ Téléchargement du AppImage..."
     wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
 }
 
-# Télécharge le zip principal (wget)
 download_zip() {
     echo "⬇️ Téléchargement du build..."
     wget -O "$ZIP_PATH" "$ZIP_URL"
 }
 
-# Télécharge la SD avec fallback aria2 → rclone → wget
-# Télécharge la SD avec fallback aria2 → rclone → wget
 download_sd() {
     echo "⬇️ Téléchargement de la SD..."
     mkdir -p "$INSTALL_DIR/Wii"
 
-    # Supprime l'ancien fichier avant téléchargement
     if [[ -f "$SD_PATH" ]]; then
         echo "🧹 Suppression de l'ancienne SD..."
         rm -f "$SD_PATH"
     fi
 
-    # Tentatives de téléchargement avec fallback
     if command -v aria2c &>/dev/null; then
         aria2c -x 16 -s 16 -d "$INSTALL_DIR/Wii" -o "sd.raw" "$SD_URL" && return
         echo "⚠️ aria2 a échoué, tentative avec rclone..."
@@ -195,7 +182,7 @@ download_sd() {
 
 
 # ---------------------------
-# 🧰 EXTRACTION ET INSTALLATION DU BUILD
+# 🧰 EXTRACTION DU BUILD
 # ---------------------------
 extract_zip() {
     echo "📦 Extraction du build..."
@@ -234,8 +221,13 @@ EOF
 # ---------------------------
 launch_app() {
     chmod +x "$APPIMAGE_PATH"
-    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
-    exit 0
+
+    echo "🎮 Démarrage de Project+ FR..."
+    echo "➡️  Chemin : $APPIMAGE_PATH"
+    echo "➡️  Userdir : $INSTALL_DIR"
+
+    # Lancement propre détaché du terminal
+    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
 }
 
 
@@ -245,13 +237,11 @@ launch_app() {
 main() {
     verify_script_update
 
-    # Vérifie dépendances minimales
     install_if_missing wget
     install_if_missing unzip
     install_if_missing curl
 
     local local_app_hash local_sd_hash
-
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
     local_sd_hash=$(get_local_hash "$SD_PATH")
 
@@ -262,7 +252,6 @@ main() {
 
     local updated=false
 
-    # Vérifie si AppImage ou SD ont changé
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
         echo "🆕 Nouvelle version AppImage détectée."
         download_appimage
@@ -290,22 +279,15 @@ main() {
 
     echo -e "\n✅ Installation complète !"
 
-    # 🔹 Si au moins une mise à jour a eu lieu → pause 2s puis lancement
     if [[ "$updated" == true ]]; then
         echo "🚀 Lancement de P+FR..."
         sleep 2
     fi
 
-    launch_app() {
-    chmod +x "$APPIMAGE_PATH"
-
-    echo "🎮 Démarrage de Project+ FR..."
-    echo "➡️  Chemin : $APPIMAGE_PATH"
-    echo "➡️  Userdir : $INSTALL_DIR"
-
-    # Lancement direct sans tuer le terminal (meilleur pour .desktop)
-    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
+    launch_app
+    exit 0
 }
+
 
 # ---------------------------
 # 🏁 LANCEMENT DU SCRIPT
