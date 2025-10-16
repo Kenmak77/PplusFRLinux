@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.5
+# Version : 2.0.6
 #
 # CHANGELOG
-# v2.0.5
+# v2.0.6
 # - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
 # - Nettoyage et simplification du code
 # - Multi-distribution (apt, pacman, dnf)
@@ -22,7 +22,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.5"
+SCRIPT_VERSION="2.0.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -296,10 +296,16 @@ main() {
         sleep 2
     fi
 
-    launch_app
+    launch_app() {
+    chmod +x "$APPIMAGE_PATH"
+
+    echo "🎮 Démarrage de Project+ FR..."
+    echo "➡️  Chemin : $APPIMAGE_PATH"
+    echo "➡️  Userdir : $INSTALL_DIR"
+
+    # Lancement direct sans tuer le terminal (meilleur pour .desktop)
+    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
 }
-
-
 
 # ---------------------------
 # 🏁 LANCEMENT DU SCRIPT
