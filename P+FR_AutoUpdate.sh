@@ -15,6 +15,7 @@
 # - Vérifie AppImage et SD séparément
 # - Télécharge le build (.zip) depuis update2.json
 # - Création automatique du raccourci .desktop
+# - Ecrase l'ancien SD.raw
 # ======================================================
 
 
