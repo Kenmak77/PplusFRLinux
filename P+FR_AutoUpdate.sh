@@ -1,156 +1,190 @@
 #!/bin/bash
-
+#
+# ======================================================
+#  Project+ FR Auto Installer & Updater (Linux v2)
+# ======================================================
+# Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
+# Author : Kenmak77
+# Version : 2.0.1
+#
 # CHANGELOG
-# v1.0.5 - Link toward .json, get_local_hash fix, Fix desktop
- 
+# v2.0.1
+# - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
+# - Nettoyage et simplification du code
+# - Multi-distribution (apt, pacman, dnf)
+# - Vérifie AppImage et SD séparément
+# - Télécharge le build (.zip) depuis update2.json
+# - Création automatique du raccourci .desktop
+# ======================================================
 
-SCRIPT_VERSION="1.0.5"
+
+# -----------------------
+# 🔧 CONFIGURATION DE BASE
+# -----------------------
+SCRIPT_VERSION="2.0.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
-ZIP_PATH="$INSTALL_DIR/P+FR_Netplay.zip"
+ZIP_PATH="$INSTALL_DIR/P+FR_Build.zip"
+SD_PATH="$INSTALL_DIR/Wii/sd.raw"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
-GFX_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/GFX.ini"
-DOLPHIN_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Dolphin.ini"
-KEY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Hotkeys.ini"
-WII_REMOTE="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/WiimoteNew.ini"
-ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
-SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2BFR_AutoUpdate.sh"
+UPDATE2_JSON="https://update.pplusfr.org/update2.json"
+SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P+FR_AutoUpdate.sh"
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
-DESKTOP_FILE="$HOME/Desktop/P+FR.desktop"
+ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
 
-# 🔹 Check if local script is up to date
+# 🔹 Localisation du dossier Desktop selon la langue
+if [ -d "$HOME/Desktop" ]; then
+    DESKTOP_PATH="$HOME/Desktop"
+elif [ -d "$HOME/Bureau" ]; then
+    DESKTOP_PATH="$HOME/Bureau"
+else
+    DESKTOP_PATH="$HOME/Desktop"
+    mkdir -p "$DESKTOP_PATH"
+fi
+DESKTOP_FILE="$DESKTOP_PATH/P+FR.desktop"
+
+
+# ---------------------------
+# 🧩 DÉTECTION DU PACKAGE MANAGER
+# ---------------------------
+detect_package_manager() {
+    if command -v apt &>/dev/null; then
+        echo "apt"
+    elif command -v pacman &>/dev/null; then
+        echo "pacman"
+    elif command -v dnf &>/dev/null; then
+        echo "dnf"
+    else
+        echo ""
+    fi
+}
+
+# -------------------------------
+# 🧰 INSTALLATION D’UN OUTIL MANQUANT
+# -------------------------------
+install_if_missing() {
+    local pkg="$1"
+    if ! command -v "$pkg" &>/dev/null; then
+        echo "⚙️  $pkg n’est pas installé. Installation..."
+        case $(detect_package_manager) in
+            apt) sudo apt install -y "$pkg" ;;
+            pacman) sudo pacman -S --noconfirm "$pkg" ;;
+            dnf) sudo dnf install -y "$pkg" ;;
+            *) echo "❌ Aucun gestionnaire compatible trouvé. Installez $pkg manuellement."; return 1 ;;
+        esac
+    fi
+}
+
+
+# ---------------------------
+# 🧠 AUTO-MISE À JOUR DU SCRIPT
+# ---------------------------
 verify_script_update() {
-    local tmp_script="$(mktemp)"
-    wget -q -O "$tmp_script" "$SCRIPT_URL"
+    local tmp_script
+    tmp_script="$(mktemp)"
+    wget -q -O "$tmp_script" "$SCRIPT_URL" || return
+    local remote_version
     remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" | cut -d '"' -f2)
-    local_version="$SCRIPT_VERSION"
 
-    if [[ "$remote_version" != "$local_version" ]]; then
-        echo -e "\n🔄 A new version of this script is available (local: $local_version → remote: $remote_version)."
-        changelog=$(grep '^# v' "$tmp_script" | head -5)
-        echo -e "\n📝 Changelog (recent updates):\n$changelog"
-        read -rp "Do you want to update it automatically? (y/n): " update_script
-        if [[ "$update_script" == "y" ]]; then
-            wget -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
-            echo "✅ Script updated."
-            read -rp "Do you want to relaunch the updated script now? (y/n): " relaunch
+    if [[ "$remote_version" != "$SCRIPT_VERSION" && -n "$remote_version" ]]; then
+        echo -e "\n🔄 Nouvelle version du script disponible : $remote_version (local $SCRIPT_VERSION)"
+        read -rp "Mettre à jour le script automatiquement ? (y/n): " rep
+        if [[ "$rep" == "y" ]]; then
+            mkdir -p "$INSTALL_DIR"
+            wget -q -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
+            echo "✅ Script mis à jour."
+            read -rp "Relancer maintenant la nouvelle version ? (y/n): " relaunch
             if [[ "$relaunch" == "y" ]]; then
                 bash "$INSTALL_DIR/$SCRIPT_NAME"
                 exit 0
-            else
-                echo "❌ Please relaunch the updated script manually."
-                exit 0
             fi
-        else
-            echo "❌ Please update the script before continuing."
-            exit 1
         fi
     fi
     rm -f "$tmp_script"
 }
 
-verify_script_update
 
-# 🔹 Get the local hash of the AppImage
+# ---------------------------
+# 🌐 RÉCUPÉRATION DES DONNÉES JSON
+# ---------------------------
+get_json_value() {
+    local json_url="$1"
+    local key="$2"
+    curl -s "$json_url" | grep -oP "\"$key\"\\s*:\\s*\"\\K[^\"]+"
+}
+
+# Récupération des URLs depuis update.json et update2.json
+APPIMAGE_URL=$(get_json_value "$UPDATE_JSON" "download-linux-appimage")
+SD_URL=$(get_json_value "$UPDATE_JSON" "download-sd")
+SD_HASH=$(get_json_value "$UPDATE_JSON" "sd-hash-partial")
+ZIP_URL=$(curl -s "$UPDATE2_JSON" | grep -oP '"browser_download_url"\s*:\s*"\K[^"]+' | head -1)
+REMOTE_HASH=$(get_json_value "$UPDATE2_JSON" "hash-linux")
+
+
+# ---------------------------
+# 🔐 CALCUL DU HASH LOCAL
+# ---------------------------
 get_local_hash() {
-    [[ -f "$APPIMAGE_PATH" ]] && sha1sum "$APPIMAGE_PATH" | awk '{print $1}'
-}
-
-# 🔹 Cleanup if interrupted
-trap 'echo -e "\n⚠️ Script interrupted. Cleaning up..."; [[ -f "$ZIP_PATH" ]] && rm -f "$ZIP_PATH"; exit 1' INT TERM
-
-# 🔹 Retrieve dynamic URLs from update.json
-APPIMAGE_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-linux-appimage"\s*:\s*"\K[^"]+')
-ZIP_URL=$(curl -s "$UPDATE_JSON" | grep -oP '"download-page-windows"\s*:\s*"\K[^"]+')
-
-# 🔹 Récupère le hash distant depuis update.json
-get_remote_hash() {
-    curl -s "$UPDATE_JSON" | grep -oP '"hash-linux"\s*:\s*"\K[a-f0-9]+(?=")'
-}
-
-# 🔹 Vérifie l'intégrité du fichier téléchargé
-verify_appimage_hash() {
-    local downloaded_hash=$(sha1sum "$APPIMAGE_PATH" | awk '{print $1}')
-    if [[ "$downloaded_hash" != "$remote_hash" ]]; then
-        echo "❌ Hash mismatch! The downloaded AppImage does not match the expected hash."
-        echo "Expected: $remote_hash"
-        echo "Got: $downloaded_hash"
-        echo "Aborting installation."
-        rm -f "$APPIMAGE_PATH"
-        exit 1
+    if [[ -f "$1" ]]; then
+        sha256sum "$1" 2>/dev/null | awk '{print $1}'
     fi
 }
 
-# 🔹 Récupère le changelog
-get_changelog() {
-    curl -s "$UPDATE_JSON" | grep -oP '"changelog"\s*:\s*".*?"' | sed -E 's/"changelog"\s*:\s*"(.*)"/\1/'
+
+# ---------------------------
+# 📦 TÉLÉCHARGEMENTS
+# ---------------------------
+
+# Télécharge AppImage (wget uniquement)
+download_appimage() {
+    echo "⬇️ Téléchargement du AppImage..."
+    wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
 }
 
-# 🔹 Récupère la version
-get_version() {
-    curl -s "$UPDATE_JSON" | grep -oP '"version"\s*:\s*".*?"' | sed -E 's/"version"\s*:\s*"(.*)"/\1/'
-}
-
-# 🔹 Lancer l'application
-launch_app() {
-    chmod +x "$APPIMAGE_PATH"
-    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
-    sleep 2
-    exit 0
-}
-
-# 🔹 Installer un outil s’il est absent
-ask_install() {
-    if ! command -v "$1" &>/dev/null; then
-        read -rp "$1 is not installed (Highly speeds up download). Install? (y/n): " rep
-        if [[ "$rep" == "y" ]]; then
-            sudo apt install -y "$1"
-        fi
-    fi
-}
-
-# 🔹 Téléchargement avec fallback
+# Télécharge le zip principal (wget)
 download_zip() {
-    echo "Downloading P+FR_Netplay.zip..."
-    if command -v aria2c &>/dev/null; then
-        aria2c -x 16 -s 16 -d "$INSTALL_DIR" -o "P+FR_Netplay.zip" "$ZIP_URL" && return
-        echo "aria2c error, trying with rclone..."
-    fi
-    if command -v rclone &>/dev/null; then
-        rclone copyurl "$ZIP_URL" "$ZIP_PATH" --multi-thread-streams=8 && return
-        echo "rclone error, trying with wget..."
-    fi
+    echo "⬇️ Téléchargement du build..."
     wget -O "$ZIP_PATH" "$ZIP_URL"
 }
 
-# 🔹 Extraction et déplacement des bons fichiers
-extract_files() {
-    unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
-
+# Télécharge la SD avec fallback aria2 → rclone → wget
+download_sd() {
+    echo "⬇️ Téléchargement de la SD..."
     mkdir -p "$INSTALL_DIR/Wii"
-    rm -rf "$INSTALL_DIR/Load"
-    mkdir -p "$INSTALL_DIR/Load"
-    mkdir -p "$INSTALL_DIR/Launcher"
-    mkdir -p "$INSTALL_DIR/Config"
+    if command -v aria2c &>/dev/null; then
+        aria2c -x 16 -s 16 -d "$INSTALL_DIR/Wii" -o "sd.raw" "$SD_URL" && return
+        echo "⚠️ aria2 a échoué, tentative avec rclone..."
+    fi
+    if command -v rclone &>/dev/null; then
+        rclone copyurl "$SD_URL" "$SD_PATH" --multi-thread-streams=8 && return
+        echo "⚠️ rclone a échoué, tentative avec wget..."
+    fi
+    wget -O "$SD_PATH" "$SD_URL"
+}
 
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/User/Wii/sd.raw" "$INSTALL_DIR/Wii/"
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/"
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher"
 
-    [[ -f "$INSTALL_DIR/Config/GFX.ini" ]] || wget -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_URL"
-    [[ -f "$INSTALL_DIR/Config/Dolphin.ini" ]] || wget -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_URL"
-    [[ -f "$INSTALL_DIR/Config/Hotkeys.ini" ]] || wget -O "$INSTALL_DIR/Config/Hotkeys.ini" "$KEY_URL"
-    [[ -f "$INSTALL_DIR/Config/WiimoteNew.ini" ]] || wget -O "$INSTALL_DIR/Config/WiimoteNew.ini" "$WII_REMOTE"
-    [[ -f "$INSTALL_DIR/P+ fr.png" ]] || wget -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
+# ---------------------------
+# 🧰 EXTRACTION ET INSTALLATION DU BUILD
+# ---------------------------
+extract_zip() {
+    echo "📦 Extraction du build..."
+    unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
+    mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
+
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
 
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
 }
 
-# 🔹 Create desktop shortcut
+
+# ---------------------------
+# 🖥️ RACCOURCI .DESKTOP
+# ---------------------------
 create_desktop_entry() {
-    mkdir -p "$HOME/.local/share/applications"
+    wget -nc -q -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
@@ -161,70 +195,63 @@ Terminal=true
 Categories=Game;
 EOF
     chmod +x "$DESKTOP_FILE"
+    echo "✅ Raccourci créé : $DESKTOP_FILE"
 }
 
 
-# 🔹 Message de fin
-end() {
-    chmod +x "$DESKTOP_FILE"
-    echo -e "\n✅ The 'P+FR' shortcut has been created on the Desktop."
-    echo "📁 The build is installed in: $INSTALL_DIR"
-    echo "⚠️ Keep this script if .deskpot is delet, launch it and a new one is creat"
-    echo "🎮 Launch P+FR from the desktop shortcut. Enjoy!"
-    read -p "Press any key to start P+FR and don't forget add Brawl by Default'..." -n1 -s
+# ---------------------------
+# 🎮 LANCEMENT DU JEU
+# ---------------------------
+launch_app() {
+    chmod +x "$APPIMAGE_PATH"
+    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
+    exit 0
 }
 
-# 🔹 Installation complète
-install_full() {
-    echo "Installing P+FR..."
+
+# ---------------------------
+# 🚀 FLUX PRINCIPAL DU SCRIPT
+# ---------------------------
+main() {
+    verify_script_update
+
+    # Vérifie dépendances minimales
+    install_if_missing wget
+    install_if_missing unzip
+    install_if_missing curl
+
+    local local_app_hash local_sd_hash
+
+    local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
+    local_sd_hash=$(get_local_hash "$SD_PATH")
+
     mkdir -p "$INSTALL_DIR"
-    wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
-    verify_appimage_hash
-    download_zip
-    extract_files
+
+    # Vérifie si AppImage ou SD ont changé
+    if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
+        echo "🆕 Nouvelle version AppImage détectée."
+        download_appimage
+    fi
+
+    if [[ "$local_sd_hash" != "$SD_HASH" ]]; then
+        echo "🆕 Nouvelle version de la SD détectée."
+        download_sd
+    fi
+
+    if [[ ! -d "$INSTALL_DIR/Load" ]]; then
+        download_zip
+        extract_zip
+    fi
+
     cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
     create_desktop_entry
+
+    echo -e "\n✅ Installation complète ! Lancement du jeu..."
+    launch_app
 }
 
-# 🔹 Vérification des outils
-ask_install aria2c
-ask_install rclone
-ask_install unzip
 
-# 🔹 Début du script — vérifier si à jour
-remote_hash=$(get_remote_hash)
-local_hash=$(get_local_hash)
-
-if [[ -f "$APPIMAGE_PATH" ]]; then
-    if [[ "$remote_hash" == "$local_hash" ]]; then
-        echo "AppImage is up to date. Launching..."
-        cd "$INSTALL_DIR"
-        create_desktop_entry
-        launch_app
-    else
-        changelog=$(get_changelog)
-        version=$(get_version)
-        echo -e "New update available!\nVersion: $version\nChangelog:\n$changelog"
-        read -rp "Would you like to install the update? (y/n): " update_ok
-        if [[ "$update_ok" != "y" ]]; then
-            echo "Update cancelled. Launching existing AppImage."
-            cd "$INSTALL_DIR"
-            create_desktop_entry
-            launch_app
-        else
-            echo "Installing version: $version"
-            install_full
-            cd "$INSTALL_DIR"
-            create_desktop_entry
-            launch_app
-        fi
-    fi
-else
-    version=$(get_version)
-    echo "Installing version: $version"
-    install_full
-    cd "$INSTALL_DIR"
-    create_desktop_entry
-    end
-    launch_app
-fi
+# ---------------------------
+# 🏁 LANCEMENT DU SCRIPT
+# ---------------------------
+main
