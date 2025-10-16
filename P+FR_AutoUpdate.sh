@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.5
+# Version : 2.1.6
 #
 # CHANGELOG
-# v2.1.5
+# v2.1.6
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.5"
+SCRIPT_VERSION="2.1.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -192,7 +192,7 @@ extract_zip() {
 
     # Recherche automatique du dossier User/ (nouvelle ou ancienne structure)
     local user_dir
-    user_dir=$(find "$INSTALL_DIR/unzipped" -type d -path "*/User" | head -1)
+    user_dir=$(find "$INSTALL_DIR/unzipped" -type d -path "*/user" | head -1)
 
     if [[ -z "$user_dir" ]]; then
         echo "❌ Impossible de trouver le dossier 'User' dans le ZIP."
@@ -200,7 +200,7 @@ extract_zip() {
         return 1
     fi
 
-    echo "📂 Dossier User détecté : $user_dir"
+    echo "📂 Dossier user détecté : $user_dir"
 
     # Création des dossiers cibles
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
