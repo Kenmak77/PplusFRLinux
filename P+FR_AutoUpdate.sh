@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.3
+# Version : 2.1.4
 #
 # CHANGELOG
-# v2.1.3
+# v2.1.4
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,11 +18,11 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.3"
+SCRIPT_VERSION="2.1.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
-ZIP_PATH="$INSTALL_DIR/P+FR_Build.zip"
+ZIP_PATH="$INSTALL_DIR/P+FR_Netplay2.zip"
 SD_PATH="$INSTALL_DIR/Wii/sd.raw"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
 UPDATE2_JSON="https://update.pplusfr.org/update2.json"
@@ -155,9 +155,11 @@ download_appimage() {
 }
 
 download_zip() {
-    echo "⬇️ Téléchargement du build..."
+    echo "⬇️ Téléchargement du build (P+FR_Netplay2.zip)..."
+    mkdir -p "$INSTALL_DIR"
     wget -O "$ZIP_PATH" "$ZIP_URL"
 }
+
 
 download_sd() {
     echo "⬇️ Téléchargement de la SD..."
@@ -182,16 +184,26 @@ download_sd() {
 
 
 # ---------------------------
-# 🧰 EXTRACTION DU BUILD
+# 🧰 EXTRACTION DU BUILD (Load / Launcher)
 # ---------------------------
 extract_zip() {
-    echo "📦 Extraction du build..."
+    echo "📦 Extraction du build depuis $ZIP_PATH..."
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
+
+    # Recherche du dossier racine (ex: P+FR_Netplay2)
+    local root_dir
+    root_dir=$(find "$INSTALL_DIR/unzipped" -maxdepth 1 -type d -name "P+FR_Netplay*" | head -1)
+
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
 
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    if [[ -d "$root_dir/P+FR Netplay/User/Load" ]]; then
+        mv "$root_dir/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    fi
+    if [[ -d "$root_dir/P+FR Netplay/Launcher" ]]; then
+        mv "$root_dir/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+    fi
 
+    echo "🧹 Nettoyage temporaire..."
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
 }
@@ -271,6 +283,15 @@ main() {
     else
         echo "✅ AppImage à jour."
     fi
+    
+    # Si on a téléchargé un nouvel AppImage, on télécharge aussi le build associé
+    if [[ "$updated" == true ]]; then
+        echo "📦 Mise à jour du build associée à l'AppImage..."
+        download_zip
+        extract_zip
+    fi
+
+
 
     if [[ "$local_sd_hash" != "$SD_HASH" ]]; then
         echo "🆕 Nouvelle version de la SD détectée."
