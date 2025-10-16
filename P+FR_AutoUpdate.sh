@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.7
+# Version : 2.1.8
 #
 # CHANGELOG
-# v2.1.7
+# v2.1.8
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.7"
+SCRIPT_VERSION="2.1.8"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -223,7 +223,13 @@ extract_zip() {
     echo "✅ Extraction terminée."
 }
 
-
+fix_dolphin_ini() {
+    local dolphin_ini="$INSTALL_DIR/Config/Dolphin.ini"
+    if [[ -f "$dolphin_ini" ]]; then
+        echo "🧽 Suppression de 'WiiSDCardPath' dans Dolphin.ini..."
+        sed -i '/^WiiSDCardPath/d' "$dolphin_ini"
+    fi
+}
 
 
 # ---------------------------
@@ -300,6 +306,16 @@ main() {
     else
         echo "✅ AppImage à jour."
     fi
+
+    if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
+    echo "🆕 Nouvelle version AppImage détectée."
+    download_appimage
+    echo "⬇️ Téléchargement de la SD associée à cette version..."
+    download_sd
+    updated=true
+else
+    echo "✅ AppImage à jour."
+fi
     
     # Si on a téléchargé un nouvel AppImage, on télécharge aussi le build associé
     if [[ "$updated" == true ]]; then
@@ -308,15 +324,6 @@ main() {
         extract_zip
     fi
 
-
-
-    if [[ "$local_sd_hash" != "$SD_HASH" ]]; then
-        echo "🆕 Nouvelle version de la SD détectée."
-        download_sd
-        updated=true
-    else
-        echo "✅ SD à jour."
-    fi
 
     if [[ ! -d "$INSTALL_DIR/Load" ]]; then
         download_zip
@@ -333,7 +340,8 @@ main() {
         echo "🚀 Lancement de P+FR..."
         sleep 2
     fi
-
+    
+    fix_dolphin_ini
     launch_app
     exit 0
 }
