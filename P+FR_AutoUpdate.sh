@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.3
+# Version : 2.0.4
 #
 # CHANGELOG
-# v2.0.3
+# v2.0.4
 # - Suppression du téléchargement des fichiers GFX / Dolphin / Wiimote
 # - Nettoyage et simplification du code
 # - Multi-distribution (apt, pacman, dnf)
@@ -22,7 +22,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.3"
+SCRIPT_VERSION="2.0.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -134,8 +134,11 @@ get_local_hash() {
                 sha1sum "$1" 2>/dev/null | awk '{print $1}'
                 ;;
             *"sd.raw")
-                # 💾 SD → hash SHA-256 partiel (512 MB = 536 870 912 octets)
-                head -c $((512*1024*1024)) "$1" | sha256sum | awk '{print $1}'
+                # 💾 SD → hash SHA-256 sur 256 MB du début + 256 MB de la fin
+                (
+                    head -c $((256*1024*1024)) "$1"
+                    tail -c $((256*1024*1024)) "$1"
+                ) | sha256sum | awk '{print $1}'
                 ;;
             *)
                 # 🔹 Tout autre fichier → hash SHA-256 complet
