@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.1.4
+# Version : 2.1.5
 #
 # CHANGELOG
-# v2.1.4
+# v2.1.5
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.1.4"
+SCRIPT_VERSION="2.1.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -190,23 +190,39 @@ extract_zip() {
     echo "📦 Extraction du build depuis $ZIP_PATH..."
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
 
-    # Recherche du dossier racine (ex: P+FR_Netplay2)
-    local root_dir
-    root_dir=$(find "$INSTALL_DIR/unzipped" -maxdepth 1 -type d -name "P+FR_Netplay*" | head -1)
+    # Recherche automatique du dossier User/ (nouvelle ou ancienne structure)
+    local user_dir
+    user_dir=$(find "$INSTALL_DIR/unzipped" -type d -path "*/User" | head -1)
 
+    if [[ -z "$user_dir" ]]; then
+        echo "❌ Impossible de trouver le dossier 'User' dans le ZIP."
+        rm -rf "$INSTALL_DIR/unzipped"
+        return 1
+    fi
+
+    echo "📂 Dossier User détecté : $user_dir"
+
+    # Création des dossiers cibles
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
 
-    if [[ -d "$root_dir/P+FR Netplay/User/Load" ]]; then
-        mv "$root_dir/P+FR Netplay/User/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    # Copie des dossiers Load et Launcher depuis le bon emplacement
+    if [[ -d "$user_dir/Load" ]]; then
+        echo "📦 Copie de Load/"
+        cp -r "$user_dir/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     fi
-    if [[ -d "$root_dir/P+FR Netplay/Launcher" ]]; then
-        mv "$root_dir/P+FR Netplay/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+
+    if [[ -d "$user_dir/Launcher" ]]; then
+        echo "📦 Copie de Launcher/"
+        cp -r "$user_dir/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
     fi
 
     echo "🧹 Nettoyage temporaire..."
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
+
+    echo "✅ Extraction terminée."
 }
+
 
 
 # ---------------------------
