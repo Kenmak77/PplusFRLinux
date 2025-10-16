@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.0.7
+# Version : 2.0.8
 #
 # CHANGELOG
-# v2.0.7
+# v2.0.8
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -18,7 +18,7 @@
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.0.7"
+SCRIPT_VERSION="2.0.8"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -226,8 +226,12 @@ launch_app() {
     echo "➡️  Chemin : $APPIMAGE_PATH"
     echo "➡️  Userdir : $INSTALL_DIR"
 
-    # Lancement propre détaché du terminal
-    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
+    # Lancement via setsid (plus fiable sur Linux Mint, KDE, etc.)
+    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
+
+    # Laisse le temps de démarrer avant fermeture du terminal
+    sleep 2
+    exit 0
 }
 
 
