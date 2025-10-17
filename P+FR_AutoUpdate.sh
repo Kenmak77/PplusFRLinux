@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.3.3
+# Version : 2.3.4
 #
 # CHANGELOG
-# v2.3.3
+# v2.3.4
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.3.3"
+SCRIPT_VERSION="2.3.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -250,7 +250,7 @@ extract_zip() {
 
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
-        echo "📁 Déplacement du dossiemkdir -p 
+        echo "📁 Déplacement du dossiemkdir -p" 
          mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii" 2>/dev/null || true
     else
         echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
