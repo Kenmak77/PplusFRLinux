@@ -5,37 +5,44 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.4
+# Version : 2.2.5
 #
 # CHANGELOG
-# v2.2.4
+# v2.2.5
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
 # - Téléchargement stable et multi-distro
 # ======================================================
 
-# --- 🔹 S'assurer que le script est lancé dans un terminal ---
-if [ -z "$PS1" ] && [ -t 0 ]; then
-    # Si le script n'est pas dans un terminal, on en ouvre un
+# ======================================================
+# 🔹 Force l’ouverture du script dans un terminal visible
+# ======================================================
+if [ -z "$TERM" ] || [ ! -t 1 ]; then
+    TERMINAL_CMD=""
     if command -v gnome-terminal &>/dev/null; then
-        exec gnome-terminal -- bash -c "$0; exec bash"
+        TERMINAL_CMD="gnome-terminal -- bash -c"
     elif command -v konsole &>/dev/null; then
-        exec konsole -e bash -c "$0; exec bash"
+        TERMINAL_CMD="konsole -e bash -c"
     elif command -v xfce4-terminal &>/dev/null; then
-        exec xfce4-terminal -e "bash -c '$0; exec bash'"
+        TERMINAL_CMD="xfce4-terminal -e"
+    elif command -v xterm &>/dev/null; then
+        TERMINAL_CMD="xterm -e"
+    fi
+
+    if [ -n "$TERMINAL_CMD" ]; then
+        $TERMINAL_CMD "'$0'; exec bash"
+        exit 0
     else
-        echo "⚠️ Impossible d'ouvrir un terminal automatiquement."
-        echo "Veuillez exécuter ce script depuis un terminal."
+        echo "⚠️ Aucun terminal graphique trouvé. Exécutez ce script depuis un terminal."
         exit 1
     fi
 fi
 
-
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.4"
+SCRIPT_VERSION="2.2.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
