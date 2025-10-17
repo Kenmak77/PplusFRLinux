@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.5
+# Version : 2.5.6
 #
 # CHANGELOG
-# v2.5.5
+# v2.5.6
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.5"
+SCRIPT_VERSION="2.5.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -200,17 +200,6 @@ extract_zip() {
     rm -f "$ZIP_PATH"
 }
 
-# ---------------------------
-# ⚙️ CONFIGURATION DES FICHIERS INI
-# ---------------------------
-setup_ini_files() {
-    mkdir -p "$INSTALL_DIR/Config"
-    echo "⬇️ Download config file..."
-    wget -q -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_INI_URL"
-    wget -q -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_INI_URL"
-    wget -q -O "$INSTALL_DIR/Config/Hotkeys.ini" "$HOTKEYS_INI_URL"
-    echo "✅ Fichiers .ini installés dans Config/"
-}
 
 # ---------------------------
 # 🖥️ RACCOURCI .DESKTOP
@@ -249,8 +238,9 @@ launch_app() {
     nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
     disown
 
-    echo "✅ Launch Dolphin — exit terminal.."
-    sleep 1
+    sleep 3
+    echo "✅ Launch Dolphin... You can exit, Launch .desktop to keep P+FR update"
+    
 
     # Ferme complètement le terminal sans message
     exec bash -c "sleep 0.5; exit"
@@ -268,14 +258,12 @@ download_default_configs() {
     local HOTKEYS_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Hotkeys.ini"
     local WIIMOTE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/WiimoteNew.ini"
 
-    echo "🧩 Vérification des fichiers de configuration..."
-
     [[ -f "$config_dir/GFX.ini" ]] || wget -q -O "$config_dir/GFX.ini" "$GFX_URL"
     [[ -f "$config_dir/Dolphin.ini" ]] || wget -q -O "$config_dir/Dolphin.ini" "$DOLPHIN_URL"
     [[ -f "$config_dir/Hotkeys.ini" ]] || wget -q -O "$config_dir/Hotkeys.ini" "$HOTKEYS_URL"
     [[ -f "$config_dir/WiimoteNew.ini" ]] || wget -q -O "$config_dir/WiimoteNew.ini" "$WIIMOTE_URL"
 
-    echo "✅ Configs vérifiées."
+    echo "✅ Configs checked"
 }
 
 
@@ -298,12 +286,12 @@ main() {
 
     # Si AppImage absente ou hash différent → nouvelle version
     if [[ ! -f "$APPIMAGE_PATH" || "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Nouvelle version ou AppImage miss."
+        echo "🆕 New version"
         echo "⬇️ Download SD..."
         download_sd
-        echo "⬇️ Downloadl’AppImage..."
+        echo "⬇️ DownloadAppImage..."
         download_appimage
-        echo "⬇️ Downloadbuild..."
+        echo "⬇️ Download build..."
         download_zip
         extract_zip
     else
@@ -312,11 +300,10 @@ main() {
 
     # ✅ Copie du script dans P+FR/
     cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
-    
-    setup_ini_files
-    create_desktop_entry
 
     download_default_configs
+     
+    create_desktop_entry
 
     echo -e "\n✅ Installation complete !"
     echo "🚀 Lancement de P+FR..."
