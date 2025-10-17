@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.3.1
+# Version : 2.3.2
 #
 # CHANGELOG
-# v2.3.1
+# v2.3.2
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.3.1"
+SCRIPT_VERSION="2.3.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -250,8 +250,8 @@ extract_zip() {
 
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
-        echo "📁 Déplacement du dossier Wii..."
-        mv "$INSTALL_DIR/unzipped/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
+        echo "📁 Déplacement du dossiemkdir -p 
+         mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii" 2>/dev/null || true
     else
         echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
     fi
@@ -276,6 +276,26 @@ fix_dolphin_ini() {
             echo "[Interface]"
             echo "ThemeName = Clean Blue"
         } > "$dolphin_ini"
+    else
+        echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
+    fi
+}
+
+# ---------------------------
+# 🧩 CRÉATION DU FICHIER HOTKEYS.INI SI ABSENT
+# ---------------------------
+fix_hotkey_ini() {
+
+    local dolphin_ini="$INSTALL_DIR/Config/Hotkeys.ini"
+
+
+    # Crée Dolphin.ini uniquement s'il n'existe pas
+    if [[ ! -f "$hotkey_ini" ]]; then
+        echo "🆕 Création de Dolphin.ini avec le thème par défaut..."
+        {
+            echo "[Hotkeys]"
+            echo "General/Toggle Fullscreen = @(Alt+Return) | F11"
+        } > "$hotkey_ini"
     else
         echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
     fi
@@ -375,6 +395,7 @@ main() {
     cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
     create_desktop_entry
     fix_dolphin_ini
+    fix_hotkey_ini
     fix_gfx_ini
 
     echo -e "\n✅ Installation complete !"
