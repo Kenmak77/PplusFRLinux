@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.4
+# Version : 2.5.5
 #
 # CHANGELOG
-# v2.5.4
+# v2.5.5
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.4"
+SCRIPT_VERSION="2.5.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -67,6 +67,34 @@ else
     mkdir -p "$DESKTOP_PATH"
 fi
 DESKTOP_FILE="$DESKTOP_PATH/P+FR.desktop"
+
+# ---------------------------
+# 🧠 AUTO-MISE À JOUR DU SCRIPT
+# ---------------------------
+verify_script_update() {
+    local tmp_script
+    tmp_script="$(mktemp)"
+    wget -q -O "$tmp_script" "$SCRIPT_URL" || return
+    local remote_version
+    remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" | cut -d '"' -f2)
+
+    if [[ "$remote_version" != "$SCRIPT_VERSION" && -n "$remote_version" ]]; then
+        echo -e "\n🔄 Nouvelle version du script disponible : $remote_version (local $SCRIPT_VERSION)"
+        read -rp "Mettre à jour le script automatiquement ? (y/n): " rep
+        if [[ "$rep" == "y" ]]; then
+            mkdir -p "$INSTALL_DIR"
+            wget -q -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
+            echo "✅ Script mis à jour."
+            read -rp "Relancer maintenant la nouvelle version ? (y/n): " relaunch
+            if [[ "$relaunch" == "y" ]]; then
+                bash "$INSTALL_DIR/$SCRIPT_NAME"
+                exit 0
+            fi
+        fi
+    fi
+    rm -f "$tmp_script"
+}
+
 
 # -------------------------------
 # 🧰 INSTALLATION D’UN OUTIL MANQUANT (avec confirmation)
@@ -229,9 +257,34 @@ launch_app() {
 }
 
 # ---------------------------
-# 🚀 FLUX PRINCIPAL DU SCRIPT
+# ⚙️  TÉLÉCHARGEMENT DES FICHIERS DE CONFIG PAR DÉFAUT (UNIQUEMENT SI ABSENTS)
+# ---------------------------
+download_default_configs() {
+    local config_dir="$INSTALL_DIR/Config"
+    mkdir -p "$config_dir"
+
+    local GFX_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/GFX.ini"
+    local DOLPHIN_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Dolphin.ini"
+    local HOTKEYS_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Hotkeys.ini"
+    local WIIMOTE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/WiimoteNew.ini"
+
+    echo "🧩 Vérification des fichiers de configuration..."
+
+    [[ -f "$config_dir/GFX.ini" ]] || wget -q -O "$config_dir/GFX.ini" "$GFX_URL"
+    [[ -f "$config_dir/Dolphin.ini" ]] || wget -q -O "$config_dir/Dolphin.ini" "$DOLPHIN_URL"
+    [[ -f "$config_dir/Hotkeys.ini" ]] || wget -q -O "$config_dir/Hotkeys.ini" "$HOTKEYS_URL"
+    [[ -f "$config_dir/WiimoteNew.ini" ]] || wget -q -O "$config_dir/WiimoteNew.ini" "$WIIMOTE_URL"
+
+    echo "✅ Configs vérifiées."
+}
+
+
+# ---------------------------
+# 🚀 Main
 # ---------------------------
 main() {
+    verify_script_update
+
     install_tool wget
     install_tool unzip
     install_tool curl
@@ -262,6 +315,8 @@ main() {
     
     setup_ini_files
     create_desktop_entry
+
+    download_default_configs
 
     echo -e "\n✅ Installation complete !"
     echo "🚀 Lancement de P+FR..."
