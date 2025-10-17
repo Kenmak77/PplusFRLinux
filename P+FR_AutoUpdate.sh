@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.3.0
+# Version : 2.3.1
 #
 # CHANGELOG
-# v2.3.0
+# v2.3.1
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.3.0"
+SCRIPT_VERSION="2.3.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -197,19 +197,19 @@ get_local_hash() {
 # ---------------------------
 
 download_appimage() {
-    echo "⬇️ Téléchargement du AppImage..."
+    echo "⬇️ Download AppImage..."
     wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
 }
 
 download_zip() {
-    echo "⬇️ Téléchargement du build (P+FR_Netplay2.zip)..."
+    echo "⬇️ Download (P+FR_Netplay2.zip)..."
     mkdir -p "$INSTALL_DIR"
     wget -O "$ZIP_PATH" "$ZIP_URL"
 }
 
 
 download_sd() {
-    echo "⬇️ Téléchargement de la SD..."
+    echo "⬇️ Download SD Card.."
     mkdir -p "$INSTALL_DIR/Wii"
 
     if [[ -f "$SD_PATH" ]]; then
@@ -241,17 +241,17 @@ extract_zip() {
 
     # Déplacement des dossiers Load & Launcher
     mkdir -p "$INSTALL_DIR/Launcher"
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
 
      echo "📁 Mise à jour du dossier Load..."
     rm -rf "$INSTALL_DIR/Load"
     mkdir -p "$INSTALL_DIR/Load"
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
 
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
         echo "📁 Déplacement du dossier Wii..."
-        mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
+        mv "$INSTALL_DIR/unzipped/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
     else
         echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
     fi
@@ -324,22 +324,16 @@ launch_app() {
         exit 1
     }
 
-    # 🏁 Lancer Dolphin (AppImage) en arrière-plan
-    "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
-    APP_PID=$!
+    # 🏁 Lancer Dolphin en arrière-plan
+    nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
 
-    echo "⏳ Lancement de Dolphin (PID: $APP_PID)..."
+    # ⏳ Attendre un peu pour laisser Dolphin se lancer
     sleep 3
 
-    # Vérifie si le processus Dolphin est bien en cours
-    if ps -p $APP_PID > /dev/null 2>&1; then
-        echo "✅ Dolphin a démarré avec succès ! Fermeture du terminal..."
-        disown $APP_PID
-        exit 0
-    else
-        echo "⚠️ Dolphin n’a pas pu être lancé correctement."
-        exit 1
-    fi
+    # 🧹 Fermer proprement le terminal
+    echo "✅ Dolphin lancé — fermeture du terminal..."
+    sleep 1
+    exit 0
 }
 
 
@@ -365,16 +359,16 @@ main() {
 
     # — Si nouvelle AppImage, tout retélécharger (AppImage + SD + ZIP)
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Nouvelle version AppImage détectée."
+        echo "🆕 Update detected."
         download_appimage
-        echo "⬇️ Téléchargement de la SD associée..."
+        echo "⬇️ Download SD Card..."
         download_sd
-        echo "⬇️ Téléchargement du build (ZIP)..."
+        echo "⬇️ Download .zip..."
         download_zip
         extract_zip
         updated=true
     else
-        echo "✅ AppImage à jour."
+        echo "✅ AppImage Update."
     fi
 
     # Création fichiers + raccourcis
@@ -383,7 +377,7 @@ main() {
     fix_dolphin_ini
     fix_gfx_ini
 
-    echo -e "\n✅ Installation complète !"
+    echo -e "\n✅ Installation complete !"
 
     # Lancer le jeu dans une fenêtre terminal (pas silencieux)
     if [[ "$updated" == true ]]; then
