@@ -167,7 +167,6 @@ extract_zip() {
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true
-    fi
 
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
