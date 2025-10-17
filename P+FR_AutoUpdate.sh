@@ -5,20 +5,37 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.2
+# Version : 2.2.3
 #
 # CHANGELOG
-# v2.2.2
+# v2.2.3
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
 # - Téléchargement stable et multi-distro
 # ======================================================
 
+# --- 🔹 S'assurer que le script est lancé dans un terminal ---
+if [ -z "$PS1" ] && [ -t 0 ]; then
+    # Si le script n'est pas dans un terminal, on en ouvre un
+    if command -v gnome-terminal &>/dev/null; then
+        exec gnome-terminal -- bash -c "$0; exec bash"
+    elif command -v konsole &>/dev/null; then
+        exec konsole -e bash -c "$0; exec bash"
+    elif command -v xfce4-terminal &>/dev/null; then
+        exec xfce4-terminal -e "bash -c '$0; exec bash'"
+    else
+        echo "⚠️ Impossible d'ouvrir un terminal automatiquement."
+        echo "Veuillez exécuter ce script depuis un terminal."
+        exit 1
+    fi
+fi
+
+
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.2"
+SCRIPT_VERSION="2.2.3"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -207,44 +224,28 @@ download_sd() {
 
 
 # ---------------------------
-# 🧰 EXTRACTION DU BUILD (load / launcher)
+# 🧰 EXTRACTION DU BUILD
 # ---------------------------
 extract_zip() {
-    echo "📦 Extraction du build depuis $ZIP_PATH..."
+    echo "📦 Extraction du build..."
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
 
-    # Recherche automatique du dossier 'user/' (nouvelle ou ancienne structure)
-    local user_dir
-    user_dir=$(find "$INSTALL_DIR/unzipped" -type d -path "*/user" | head -1)
-
-    if [[ -z "$user_dir" ]]; then
-        echo "❌ Impossible de trouver le dossier 'user' dans le ZIP."
-        rm -rf "$INSTALL_DIR/unzipped"
-        return 1
-    fi
-
-    echo "📂 Dossier user détecté : $user_dir"
-
-    # Création des dossiers cibles
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
 
-    # Copie des dossiers load et launcher depuis le bon emplacement
-    if [[ -d "$user_dir/Load" ]]; then
-        echo "📦 Copie de Load/"
-        cp -r "$user_dir/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    # Déplacement des dossiers Load & Launcher
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+
+    # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
+    if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
+        echo "📁 Déplacement du dossier Wii..."
+        mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
+    else
+        echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
     fi
 
-    if [[ -d "$user_dir/Launcher" ]]; then
-        echo "📦 Copie de Launcher/"
-        cp -r "$user_dir/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
-    fi
-
-    echo "🧹 Nettoyage temporaire..."
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
-
-    echo "✅ Extraction terminée."
-}
 
 # ---------------------------
 # 🧩 CRÉATION DU FICHIER DOLPHIN.INI SI ABSENT
@@ -284,7 +285,6 @@ EOF
     echo "✅ Raccourci créé : $DESKTOP_FILE"
 }
 
-
 # ---------------------------
 # 🎮 LANCEMENT DU JEU
 # ---------------------------
@@ -322,53 +322,46 @@ main() {
     install_if_missing unzip
     install_if_missing curl
 
-    local local_app_hash 
-    local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
-
-
     mkdir -p "$INSTALL_DIR"
+
+    local local_app_hash
+    local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
 
     local updated=false
 
+    # — Si nouvelle AppImage, tout retélécharger (AppImage + SD + ZIP)
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-    echo "🆕 Nouvelle version AppImage détectée."
-    download_appimage
-    echo "⬇️ Téléchargement de la SD associée à cette version..."
-    download_sd
-    updated=true
-else
-    echo "✅ AppImage à jour."
-fi
-    
-    # Si on a téléchargé un nouvel AppImage, on télécharge aussi le build associé
-    if [[ "$updated" == true ]]; then
-        echo "📦 Mise à jour du build associée à l'AppImage..."
-        download_zip
-        extract_zip
-    fi
-
-
-    if [[ ! -d "$INSTALL_DIR/Load" ]]; then
+        echo "🆕 Nouvelle version AppImage détectée."
+        download_appimage
+        echo "⬇️ Téléchargement de la SD associée..."
+        download_sd
+        echo "⬇️ Téléchargement du build (ZIP)..."
         download_zip
         extract_zip
         updated=true
+    else
+        echo "✅ AppImage à jour."
     fi
 
+    # Création fichiers + raccourcis
     cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
     create_desktop_entry
+    fix_dolphin_ini
+    fix_gfx_ini
 
     echo -e "\n✅ Installation complète !"
 
+    # Lancer le jeu dans une fenêtre terminal (pas silencieux)
     if [[ "$updated" == true ]]; then
         echo "🚀 Lancement de P+FR..."
         sleep 2
     fi
-    
-    fix_dolphin_ini
-    fix_gfx_ini
-    launch_app
-    exit 0
+
+    # Lancement direct
+    cd "$INSTALL_DIR" || exit 1
+    "$APPIMAGE_PATH" -u "$INSTALL_DIR"
 }
+
 
 
 # ---------------------------
