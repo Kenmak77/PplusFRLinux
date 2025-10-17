@@ -251,7 +251,7 @@ extract_zip() {
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
         echo "📁 Déplacement du dossiemkdir -p" 
-         mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii" 2>/dev/null || true
+         mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true
     else
         echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
     fi
@@ -275,29 +275,13 @@ fix_dolphin_ini() {
         {
             echo "[Interface]"
             echo "ThemeName = Clean Blue"
+            echu "[Core]"
+            echo "GFXBackend = Vulkan"
+            echo "[Display]"
+            echo "Fullscreen = False"
         } > "$dolphin_ini"
     else
         echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
-    fi
-}
-
-# ---------------------------
-# 🧩 CRÉATION DU FICHIER HOTKEYS.INI SI ABSENT
-# ---------------------------
-fix_hotkey_ini() {
-    local hotkey_ini="$INSTALL_DIR/Config/Hotkeys.ini"
-
-    mkdir -p "$INSTALL_DIR/Config"
-
-    # Crée Hotkeys.ini uniquement s'il n'existe pas
-    if [[ ! -f "$hotkey_ini" ]]; then
-        echo "🆕 Création de Hotkeys.ini avec le raccourci par défaut..."
-        {
-            echo "[Hotkeys]"
-            echo "General/Toggle Fullscreen = @(Alt+Return) | F11"
-        } > "$hotkey_ini"
-    else
-        echo "ℹ️ Hotkeys.ini déjà présent — aucune modification."
     fi
 }
 
