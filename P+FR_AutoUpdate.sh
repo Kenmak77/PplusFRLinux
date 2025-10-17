@@ -5,13 +5,14 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.4.0
+# Version : 2.5.0
 #
 # CHANGELOG
-# v2.4.0
-# - Téléchargement automatique des fichiers .ini depuis GitHub
-# - Terminal se ferme après le lancement de Dolphin
-# - Code simplifié et nettoyé
+# v2.5.0
+# - Téléchargement multi-méthode (aria2c → rclone → wget)
+# - Installation optionnelle des outils manquants
+# - Téléchargement automatique des fichiers .ini
+# - Fermeture automatique du terminal après lancement
 # ======================================================
 
 # ======================================================
@@ -41,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.4.0"
+SCRIPT_VERSION="2.5.0"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -69,62 +70,65 @@ else
 fi
 DESKTOP_FILE="$DESKTOP_PATH/P+FR.desktop"
 
-# ---------------------------
-# 🧩 DÉTECTION DU PACKAGE MANAGER
-# ---------------------------
-detect_package_manager() {
-    if command -v apt &>/dev/null; then
-        echo "apt"
-    elif command -v pacman &>/dev/null; then
-        echo "pacman"
-    elif command -v dnf &>/dev/null; then
-        echo "dnf"
-    else
-        echo ""
-    fi
-}
-
 # -------------------------------
-# 🧰 INSTALLATION D’UN OUTIL MANQUANT
+# 🧰 INSTALLATION D’UN OUTIL MANQUANT (avec confirmation)
 # -------------------------------
-install_if_missing() {
+install_tool() {
     local pkg="$1"
-    if ! command -v "$pkg" &>/dev/null; then
-        echo "⚙️  $pkg n’est pas installé. Installation..."
-        case $(detect_package_manager) in
-            apt) sudo apt install -y "$pkg" ;;
-            pacman) sudo pacman -S --noconfirm "$pkg" ;;
-            dnf) sudo dnf install -y "$pkg" ;;
-            *) echo "❌ Aucun gestionnaire compatible trouvé. Installez $pkg manuellement."; return 1 ;;
-        esac
+    local manager
+
+    # Détection du gestionnaire
+    if command -v apt &>/dev/null; then
+        manager="apt"
+    elif command -v pacman &>/dev/null; then
+        manager="pacman"
+    elif command -v dnf &>/dev/null; then
+        manager="dnf"
+    else
+        echo "❌ Aucun gestionnaire compatible trouvé. Installez $pkg manuellement."
+        return 1
     fi
-}
 
-# ---------------------------
-# 🧠 AUTO-MISE À JOUR DU SCRIPT
-# ---------------------------
-verify_script_update() {
-    local tmp_script
-    tmp_script="$(mktemp)"
-    wget -q -O "$tmp_script" "$SCRIPT_URL" || return
-    local remote_version
-    remote_version=$(grep '^SCRIPT_VERSION=' "$tmp_script" | cut -d '"' -f2)
-
-    if [[ "$remote_version" != "$SCRIPT_VERSION" && -n "$remote_version" ]]; then
-        echo -e "\n🔄 Nouvelle version du script disponible : $remote_version (local $SCRIPT_VERSION)"
-        read -rp "Mettre à jour le script automatiquement ? (y/n): " rep
+    if ! command -v "$pkg" &>/dev/null; then
+        read -rp "⚙️  $pkg n’est pas installé. Voulez-vous l’installer ? (y/n): " rep
         if [[ "$rep" == "y" ]]; then
-            mkdir -p "$INSTALL_DIR"
-            wget -q -O "$INSTALL_DIR/$SCRIPT_NAME" "$SCRIPT_URL"
-            echo "✅ Script mis à jour."
-            read -rp "Relancer maintenant la nouvelle version ? (y/n): " relaunch
-            if [[ "$relaunch" == "y" ]]; then
-                bash "$INSTALL_DIR/$SCRIPT_NAME"
-                exit 0
-            fi
+            case "$manager" in
+                apt) sudo apt install -y "$pkg" ;;
+                pacman) sudo pacman -S --noconfirm "$pkg" ;;
+                dnf) sudo dnf install -y "$pkg" ;;
+            esac
+        else
+            echo "⏭️  $pkg ne sera pas installé. Téléchargements limités aux outils disponibles."
         fi
     fi
-    rm -f "$tmp_script"
+}
+
+# ---------------------------
+# 📦 TÉLÉCHARGEMENT AVEC FALLBACK
+# ---------------------------
+download_file() {
+    local url="$1"
+    local output="$2"
+
+    echo "⬇️ Téléchargement : $url"
+    echo "➡️ Destination : $output"
+
+    mkdir -p "$(dirname "$output")"
+
+    if command -v aria2c &>/dev/null; then
+        aria2c -x 16 -s 16 -o "$(basename "$output")" -d "$(dirname "$output")" "$url" && return 0
+        echo "⚠️ aria2c a échoué, tentative avec rclone..."
+    fi
+
+    if command -v rclone &>/dev/null; then
+        rclone copyurl "$url" "$output" --multi-thread-streams=8 && return 0
+        echo "⚠️ rclone a échoué, tentative avec wget..."
+    fi
+
+    wget -O "$output" "$url" || {
+        echo "❌ Impossible de télécharger $url"
+        return 1
+    }
 }
 
 # ---------------------------
@@ -148,23 +152,11 @@ get_local_hash() {
 }
 
 # ---------------------------
-# 📦 TÉLÉCHARGEMENTS
+# 📦 TÉLÉCHARGEMENTS SPÉCIFIQUES
 # ---------------------------
-download_appimage() {
-    echo "⬇️ Téléchargement du AppImage..."
-    wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
-}
-
-download_zip() {
-    echo "⬇️ Téléchargement du build..."
-    wget -O "$ZIP_PATH" "$ZIP_URL"
-}
-
-download_sd() {
-    echo "⬇️ Téléchargement de la SD..."
-    mkdir -p "$INSTALL_DIR/Wii"
-    wget -O "$SD_PATH" "$(get_json_value "$UPDATE_JSON" "download-sd")"
-}
+download_appimage() { download_file "$APPIMAGE_URL" "$APPIMAGE_PATH"; }
+download_zip() { download_file "$ZIP_URL" "$ZIP_PATH"; }
+download_sd() { download_file "$(get_json_value "$UPDATE_JSON" "download-sd")" "$SD_PATH"; }
 
 # ---------------------------
 # 🧰 EXTRACTION DU BUILD
@@ -191,11 +183,10 @@ extract_zip() {
 # ---------------------------
 setup_ini_files() {
     mkdir -p "$INSTALL_DIR/Config"
-
     echo "⬇️ Téléchargement des fichiers de configuration..."
-    wget -q -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_INI_URL"
-    wget -q -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_INI_URL"
-    wget -q -O "$INSTALL_DIR/Config/Hotkeys.ini" "$HOTKEYS_INI_URL"
+    download_file "$DOLPHIN_INI_URL" "$INSTALL_DIR/Config/Dolphin.ini"
+    download_file "$GFX_INI_URL" "$INSTALL_DIR/Config/GFX.ini"
+    download_file "$HOTKEYS_INI_URL" "$INSTALL_DIR/Config/Hotkeys.ini"
     echo "✅ Fichiers .ini installés dans Config/"
 }
 
@@ -203,7 +194,8 @@ setup_ini_files() {
 # 🖥️ RACCOURCI .DESKTOP
 # ---------------------------
 create_desktop_entry() {
-    wget -nc -q -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
+    download_file "$ICON_URL" "$INSTALL_DIR/P+ fr.png"
+
     local desktop_local="$INSTALL_DIR/P+FR.desktop"
     local desktop_user="$DESKTOP_PATH/P+FR.desktop"
 
@@ -231,9 +223,8 @@ launch_app() {
     echo "🎮 Démarrage de Project+ FR..."
     cd "$INSTALL_DIR" || exit 1
     nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
-    sleep 4
-    echo "✅ Dolphin lancé — fermeture du terminal..."
-    sleep 1
+    echo "✅ Dolphin lancé — fermeture du terminal dans 3 secondes..."
+    sleep 3
     exit 0
 }
 
@@ -241,10 +232,11 @@ launch_app() {
 # 🚀 FLUX PRINCIPAL DU SCRIPT
 # ---------------------------
 main() {
-    verify_script_update
-    install_if_missing wget
-    install_if_missing unzip
-    install_if_missing curl
+    install_tool wget
+    install_tool unzip
+    install_tool curl
+    install_tool aria2c
+    install_tool rclone
 
     mkdir -p "$INSTALL_DIR"
 
@@ -252,7 +244,7 @@ main() {
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
 
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Mise à jour détectée."
+        echo "🆕 Nouvelle version détectée."
         download_appimage
         download_sd
         download_zip
