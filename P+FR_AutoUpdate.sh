@@ -5,14 +5,13 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.3.4
+# Version : 2.4.0
 #
 # CHANGELOG
-# v2.3.4
-# - Lancement AppImage corrigé (plus de fermeture immédiate)
-# - Hash SD pris depuis update2.json
-# - Vérification propre SD + AppImage
-# - Téléchargement stable et multi-distro
+# v2.4.0
+# - Téléchargement automatique des fichiers .ini depuis GitHub
+# - Terminal se ferme après le lancement de Dolphin
+# - Code simplifié et nettoyé
 # ======================================================
 
 # ======================================================
@@ -42,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.3.4"
+SCRIPT_VERSION="2.4.0"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -54,6 +53,11 @@ SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P+FR_Au
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
 
+# URLs des fichiers de configuration
+DOLPHIN_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Dolphin.ini"
+GFX_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/GFX.ini"
+HOTKEYS_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Hotkeys.ini"
+
 # 🔹 Localisation du dossier Desktop selon la langue
 if [ -d "$HOME/Desktop" ]; then
     DESKTOP_PATH="$HOME/Desktop"
@@ -64,30 +68,6 @@ else
     mkdir -p "$DESKTOP_PATH"
 fi
 DESKTOP_FILE="$DESKTOP_PATH/P+FR.desktop"
-
-# ---------------------------
-# 🧩 CRÉATION DU FICHIER GFX.INI SI ABSENT
-# ---------------------------
-fix_gfx_ini() {
-    local gfx_ini="$INSTALL_DIR/Config/GFX.ini"
-
-    mkdir -p "$INSTALL_DIR/Config"
-
-    if [[ ! -f "$gfx_ini" ]]; then
-        echo "🆕 Création de GFX.ini avec les paramètres par défaut..."
-        {
-            echo "[Settings]"
-            echo "InternalResolution = 3"
-            echo "MSAA = 0x00000002"
-            echo "SSAA = True"
-            echo "ShaderCompilationMode = 1"
-            echo "WaitForShadersBeforeStarting = True"
-        } > "$gfx_ini"
-    else
-        echo "ℹ️ GFX.ini déjà présent — aucune modification."
-    fi
-}
-
 
 # ---------------------------
 # 🧩 DÉTECTION DU PACKAGE MANAGER
@@ -120,7 +100,6 @@ install_if_missing() {
     fi
 }
 
-
 # ---------------------------
 # 🧠 AUTO-MISE À JOUR DU SCRIPT
 # ---------------------------
@@ -148,7 +127,6 @@ verify_script_update() {
     rm -f "$tmp_script"
 }
 
-
 # ---------------------------
 # 🌐 RÉCUPÉRATION DES DONNÉES JSON
 # ---------------------------
@@ -158,77 +136,35 @@ get_json_value() {
     curl -s "$json_url" | grep -oP "\"${key//-/\\-}\"\\s*:\\s*\"\\K[^\"]+"
 }
 
-# Récupération des URLs depuis update.json et update2.json
 APPIMAGE_URL=$(get_json_value "$UPDATE_JSON" "download-linux-appimage")
-SD_URL=$(get_json_value "$UPDATE_JSON" "download-sd")
-SD_HASH=$(get_json_value "$UPDATE2_JSON" "sd-hash-partial")
 ZIP_URL=$(curl -s "$UPDATE2_JSON" | grep -oP '"browser_download_url"\s*:\s*"\K[^"]+' | head -1)
 REMOTE_HASH=$(get_json_value "$UPDATE2_JSON" "hash-linux")
-
 
 # ---------------------------
 # 🔐 CALCUL DU HASH LOCAL
 # ---------------------------
 get_local_hash() {
-    if [[ -f "$1" ]]; then
-        case "$1" in
-            *".AppImage")
-                # 🧩 AppImage → hash SHA-1 complet (comme "hash-linux")
-                sha1sum "$1" 2>/dev/null | awk '{print $1}'
-                ;;
-            *"sd.raw")
-                # 💾 SD → hash SHA-256 sur 256 MB du début + 256 MB de la fin
-                (
-                    head -c $((256*1024*1024)) "$1"
-                    tail -c $((256*1024*1024)) "$1"
-                ) | sha256sum | awk '{print $1}'
-                ;;
-            *)
-                # 🔹 Tout autre fichier → hash SHA-256 complet
-                sha256sum "$1" 2>/dev/null | awk '{print $1}'
-                ;;
-        esac
-    fi
+    [[ -f "$1" ]] && sha1sum "$1" 2>/dev/null | awk '{print $1}'
 }
-
 
 # ---------------------------
 # 📦 TÉLÉCHARGEMENTS
 # ---------------------------
-
 download_appimage() {
-    echo "⬇️ Download AppImage..."
+    echo "⬇️ Téléchargement du AppImage..."
     wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
 }
 
 download_zip() {
-    echo "⬇️ Download (P+FR_Netplay2.zip)..."
-    mkdir -p "$INSTALL_DIR"
+    echo "⬇️ Téléchargement du build..."
     wget -O "$ZIP_PATH" "$ZIP_URL"
 }
 
-
 download_sd() {
-    echo "⬇️ Download SD Card.."
+    echo "⬇️ Téléchargement de la SD..."
     mkdir -p "$INSTALL_DIR/Wii"
-
-    if [[ -f "$SD_PATH" ]]; then
-        echo "🧹 Suppression de l'ancienne SD..."
-        rm -f "$SD_PATH"
-    fi
-
-    if command -v aria2c &>/dev/null; then
-        aria2c -x 16 -s 16 -d "$INSTALL_DIR/Wii" -o "sd.raw" "$SD_URL" && return
-        echo "⚠️ aria2 a échoué, tentative avec rclone..."
-    fi
-    if command -v rclone &>/dev/null; then
-        rclone copyurl "$SD_URL" "$SD_PATH" --multi-thread-streams=8 && return
-        echo "⚠️ rclone a échoué, tentative avec wget..."
-    fi
-
-    wget -O "$SD_PATH" "$SD_URL"
+    wget -O "$SD_PATH" "$(get_json_value "$UPDATE_JSON" "download-sd")"
 }
-
 
 # ---------------------------
 # 🧰 EXTRACTION DU BUILD
@@ -238,51 +174,29 @@ extract_zip() {
     unzip -o "$ZIP_PATH" -d "$INSTALL_DIR/unzipped"
 
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
-
-    # Déplacement des dossiers Load & Launcher
-    mkdir -p "$INSTALL_DIR/Launcher"
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
-
-     echo "📁 Mise à jour du dossier Load..."
-    rm -rf "$INSTALL_DIR/Load"
-    mkdir -p "$INSTALL_DIR/Load"
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
 
-    # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
-        echo "📁 Déplacement du dossiemkdir -p" 
-         mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true
-    else
-        echo "ℹ️ Dossier Wii déjà présent — conservé tel quel."
+        echo "📁 Déplacement du dossier Wii..."
+        mv "$INSTALL_DIR/unzipped/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
     fi
 
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
-}   # 👈 ici on referme bien extract_zip()
-
+}
 
 # ---------------------------
-# 🧩 CRÉATION DU FICHIER DOLPHIN.INI SI ABSENT
+# ⚙️ CONFIGURATION DES FICHIERS INI
 # ---------------------------
-fix_dolphin_ini() {
-    local dolphin_ini="$INSTALL_DIR/Config/Dolphin.ini"
-
+setup_ini_files() {
     mkdir -p "$INSTALL_DIR/Config"
 
-    # Crée Dolphin.ini uniquement s'il n'existe pas
-    if [[ ! -f "$dolphin_ini" ]]; then
-        echo "🆕 Création de Dolphin.ini avec le thème par défaut..."
-        {
-            echo "[Interface]"
-            echo "ThemeName = Clean Blue"
-            echu "[Core]"
-            echo "GFXBackend = Vulkan"
-            echo "[Display]"
-            echo "Fullscreen = False"
-        } > "$dolphin_ini"
-    else
-        echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
-    fi
+    echo "⬇️ Téléchargement des fichiers de configuration..."
+    wget -q -O "$INSTALL_DIR/Config/Dolphin.ini" "$DOLPHIN_INI_URL"
+    wget -q -O "$INSTALL_DIR/Config/GFX.ini" "$GFX_INI_URL"
+    wget -q -O "$INSTALL_DIR/Config/Hotkeys.ini" "$HOTKEYS_INI_URL"
+    echo "✅ Fichiers .ini installés dans Config/"
 }
 
 # ---------------------------
@@ -290,7 +204,6 @@ fix_dolphin_ini() {
 # ---------------------------
 create_desktop_entry() {
     wget -nc -q -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
-
     local desktop_local="$INSTALL_DIR/P+FR.desktop"
     local desktop_user="$DESKTOP_PATH/P+FR.desktop"
 
@@ -307,49 +220,28 @@ EOF
     chmod +x "$desktop_local"
     cp "$desktop_local" "$desktop_user"
     chmod +x "$desktop_user"
-
     echo "✅ Raccourci créé : $desktop_user"
 }
-
 
 # ---------------------------
 # 🎮 LANCEMENT DU JEU
 # ---------------------------
 launch_app() {
     chmod +x "$APPIMAGE_PATH"
-
     echo "🎮 Démarrage de Project+ FR..."
-    echo "➡️  AppImage : $APPIMAGE_PATH"
-    echo "➡️  Userdir : $INSTALL_DIR"
-
-    # ✅ Se placer dans le dossier d’installation
-    cd "$INSTALL_DIR" || {
-        echo "❌ Impossible d’accéder à $INSTALL_DIR"
-        exit 1
-    }
-
-    # 🏁 Lancer Dolphin en arrière-plan
+    cd "$INSTALL_DIR" || exit 1
     nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
-
-    # ⏳ Attendre un peu pour laisser Dolphin se lancer
-    sleep 3
-
-    # 🧹 Fermer proprement le terminal
+    sleep 4
     echo "✅ Dolphin lancé — fermeture du terminal..."
     sleep 1
     exit 0
 }
-
-
-
-
 
 # ---------------------------
 # 🚀 FLUX PRINCIPAL DU SCRIPT
 # ---------------------------
 main() {
     verify_script_update
-
     install_if_missing wget
     install_if_missing unzip
     install_if_missing curl
@@ -359,43 +251,22 @@ main() {
     local local_app_hash
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
 
-    local updated=false
-
-    # — Si nouvelle AppImage, tout retélécharger (AppImage + SD + ZIP)
     if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Update detected."
+        echo "🆕 Mise à jour détectée."
         download_appimage
-        echo "⬇️ Download SD Card..."
         download_sd
-        echo "⬇️ Download .zip..."
         download_zip
         extract_zip
-        updated=true
-    else
-        echo "✅ AppImage Update."
     fi
 
-    # Création fichiers + raccourcis
-    cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
+    setup_ini_files
     create_desktop_entry
-    fix_dolphin_ini
-    fix_hotkey_ini
-    fix_gfx_ini
 
-    echo -e "\n✅ Installation complete !"
-
-    # Lancer le jeu dans une fenêtre terminal (pas silencieux)
-    if [[ "$updated" == true ]]; then
-        echo "🚀 Lancement de P+FR..."
-        sleep 2
-    fi
-
-    # Lancement direct
-    cd "$INSTALL_DIR" || exit 1
-    "$APPIMAGE_PATH" -u "$INSTALL_DIR"
+    echo -e "\n✅ Installation complète !"
+    echo "🚀 Lancement de P+FR..."
+    sleep 2
+    launch_app
 }
-
-
 
 # ---------------------------
 # 🏁 LANCEMENT DU SCRIPT
