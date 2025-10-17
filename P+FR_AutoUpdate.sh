@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.7
+# Version : 2.3.0
 #
 # CHANGELOG
-# v2.2.7
+# v2.3.0
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.7"
+SCRIPT_VERSION="2.3.0"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -243,7 +243,10 @@ extract_zip() {
     mkdir -p "$INSTALL_DIR/Launcher"
     mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
 
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+     echo "📁 Mise à jour du dossier Load..."
+    rm -rf "$INSTALL_DIR/Load"
+    mkdir -p "$INSTALL_DIR/Load"
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
 
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
@@ -315,19 +318,30 @@ launch_app() {
     echo "➡️  AppImage : $APPIMAGE_PATH"
     echo "➡️  Userdir : $INSTALL_DIR"
 
-    # ✅ Se placer dans le dossier d'installation pour que ./Wii/sd.raw soit valide
+    # ✅ Se placer dans le dossier d’installation
     cd "$INSTALL_DIR" || {
-        echo "❌ Impossible d'accéder à $INSTALL_DIR"
+        echo "❌ Impossible d’accéder à $INSTALL_DIR"
         exit 1
     }
 
-    # 🔹 Lancer exactement comme dans ton ancien script
-    setsid "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 < /dev/null &
+    # 🏁 Lancer Dolphin (AppImage) en arrière-plan
+    "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
+    APP_PID=$!
 
-    # ⏳ Laisse le temps au processus de démarrer
-    sleep 2
-    exit 0
+    echo "⏳ Lancement de Dolphin (PID: $APP_PID)..."
+    sleep 3
+
+    # Vérifie si le processus Dolphin est bien en cours
+    if ps -p $APP_PID > /dev/null 2>&1; then
+        echo "✅ Dolphin a démarré avec succès ! Fermeture du terminal..."
+        disown $APP_PID
+        exit 0
+    else
+        echo "⚠️ Dolphin n’a pas pu être lancé correctement."
+        exit 1
+    fi
 }
+
 
 
 
