@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.3
+# Version : 2.5.4
 #
 # CHANGELOG
-# v2.5.3
+# v2.5.4
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.3"
+SCRIPT_VERSION="2.5.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
