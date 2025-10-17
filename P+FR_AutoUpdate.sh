@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.6
+# Version : 2.2.7
 #
 # CHANGELOG
-# v2.2.6
+# v2.2.7
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.6"
+SCRIPT_VERSION="2.2.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -240,7 +240,9 @@ extract_zip() {
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
 
     # Déplacement des dossiers Load & Launcher
-    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
+    mkdir -p "$INSTALL_DIR/Launcher"
+    mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+
     mv "$INSTALL_DIR/unzipped/P+FR_Netplay2/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
 
     # Déplacement du dossier Wii uniquement s'il n'existe pas déjà
