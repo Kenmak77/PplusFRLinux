@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.3
+# Version : 2.2.4
 #
 # CHANGELOG
-# v2.2.3
+# v2.2.4
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -35,7 +35,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.3"
+SCRIPT_VERSION="2.2.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -282,6 +282,11 @@ Terminal=true
 Categories=Game;
 EOF
     chmod +x "$DESKTOP_FILE"
+
+    # Copie sur le bureau
+    cp "$desktop_local" "$desktop_user"
+    chmod +x "$desktop_user"
+    
     echo "✅ Raccourci créé : $DESKTOP_FILE"
 }
 
