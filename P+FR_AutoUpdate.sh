@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.2.5
+# Version : 2.2.6
 #
 # CHANGELOG
-# v2.2.5
+# v2.2.6
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.2.5"
+SCRIPT_VERSION="2.2.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -253,6 +253,8 @@ extract_zip() {
 
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
+}   # 👈 ici on referme bien extract_zip()
+
 
 # ---------------------------
 # 🧩 CRÉATION DU FICHIER DOLPHIN.INI SI ABSENT
@@ -279,7 +281,11 @@ fix_dolphin_ini() {
 # ---------------------------
 create_desktop_entry() {
     wget -nc -q -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
-    cat > "$DESKTOP_FILE" <<EOF
+
+    local desktop_local="$INSTALL_DIR/P+FR.desktop"
+    local desktop_user="$DESKTOP_PATH/P+FR.desktop"
+
+    cat > "$desktop_local" <<EOF
 [Desktop Entry]
 Type=Application
 Name=P+FR
@@ -288,14 +294,14 @@ Icon=$INSTALL_DIR/P+ fr.png
 Terminal=true
 Categories=Game;
 EOF
-    chmod +x "$DESKTOP_FILE"
 
-    # Copie sur le bureau
+    chmod +x "$desktop_local"
     cp "$desktop_local" "$desktop_user"
     chmod +x "$desktop_user"
-    
-    echo "✅ Raccourci créé : $DESKTOP_FILE"
+
+    echo "✅ Raccourci créé : $desktop_user"
 }
+
 
 # ---------------------------
 # 🎮 LANCEMENT DU JEU
