@@ -171,7 +171,7 @@ extract_zip() {
 
     if [[ ! -d "$INSTALL_DIR/Wii" ]]; then
         echo "📁 Déplacement du dossier Wii..."
-        mv "$INSTALL_DIR/unzipped/user/Wii" "$INSTALL_DIR/" 2>/dev/null || true
+        mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true
     fi
 
     rm -rf "$INSTALL_DIR/unzipped"
@@ -243,22 +243,29 @@ main() {
     local local_app_hash
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
 
-    if [[ "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 Nouvelle version détectée."
-        download_appimage
+    # Vérifie si l’AppImage existe et correspond au hash distant
+    if [[ ! -f "$APPIMAGE_PATH" || "$local_app_hash" != "$REMOTE_HASH" ]]; then
+        echo "🆕 Nouvelle version ou absence d’AppImage détectée."
+        echo "⬇️ Download SD Card..."
         download_sd
+        echo "⬇️ Download APPIMAGE..."
+        download_appimage
+        echo "⬇️ Download .zip..."
         download_zip
         extract_zip
+    else
+        echo "✅ Build Update!."
     fi
 
     setup_ini_files
     create_desktop_entry
 
-    echo -e "\n✅ Installation complète !"
+    echo -e "\n✅ Installation complete !"
     echo "🚀 Lancement de P+FR..."
     sleep 2
     launch_app
 }
+
 
 # ---------------------------
 # 🏁 LANCEMENT DU SCRIPT
