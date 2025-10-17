@@ -214,12 +214,18 @@ EOF
 # ---------------------------
 launch_app() {
     chmod +x "$APPIMAGE_PATH"
-    echo "🎮 Launch Project+ FR..."
+    echo "🎮 Démarrage de Project+ FR..."
     cd "$INSTALL_DIR" || exit 1
+
+    # Lancement en tâche de fond, détachée du terminal
     nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
-    echo "✅ Dolphin lancé — fermeture du terminal dans 3 secondes..."
-    sleep 3
-    exit 0
+    disown
+
+    echo "✅ Dolphin lancé — fermeture du terminal..."
+    sleep 1
+
+    # Ferme complètement le terminal sans message
+    exec bash -c "sleep 0.5; exit"
 }
 
 # ---------------------------
