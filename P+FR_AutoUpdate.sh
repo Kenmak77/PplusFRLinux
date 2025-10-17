@@ -197,7 +197,7 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=P+FR
-Exec=sh -c '$INSTALL_DIR/$SCRIPT_NAME'
+Exec=$INSTALL_DIR/$SCRIPT_NAME
 Icon=$INSTALL_DIR/P+ fr.png
 Terminal=true
 Categories=Game;
@@ -206,7 +206,7 @@ EOF
     chmod +x "$desktop_local"
     cp "$desktop_local" "$desktop_user"
     chmod +x "$desktop_user"
-    echo "✅ Creat Shorcut : $desktop_user"
+    echo "✅ Raccourci créé : $desktop_user"
 }
 
 # ---------------------------
@@ -221,7 +221,7 @@ launch_app() {
     nohup "$APPIMAGE_PATH" -u "$INSTALL_DIR" >/dev/null 2>&1 &
     disown
 
-    echo "✅ Dolphin lancé — fermeture du terminal..."
+    echo "✅ Launch Dolphin — exit terminal.."
     sleep 1
 
     # Ferme complètement le terminal sans message
@@ -257,6 +257,9 @@ main() {
         echo "✅ AppImage Update"
     fi
 
+    # ✅ Copie du script dans P+FR/
+    cp "$0" "$INSTALL_DIR/$SCRIPT_NAME"
+    
     setup_ini_files
     create_desktop_entry
 
