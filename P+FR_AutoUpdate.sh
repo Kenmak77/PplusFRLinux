@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.3.2
+# Version : 2.3.3
 #
 # CHANGELOG
-# v2.3.2
+# v2.3.3
 # - Lancement AppImage corrigé (plus de fermeture immédiate)
 # - Hash SD pris depuis update2.json
 # - Vérification propre SD + AppImage
@@ -42,7 +42,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.3.2"
+SCRIPT_VERSION="2.3.3"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -285,19 +285,19 @@ fix_dolphin_ini() {
 # 🧩 CRÉATION DU FICHIER HOTKEYS.INI SI ABSENT
 # ---------------------------
 fix_hotkey_ini() {
+    local hotkey_ini="$INSTALL_DIR/Config/Hotkeys.ini"
 
-    local dolphin_ini="$INSTALL_DIR/Config/Hotkeys.ini"
+    mkdir -p "$INSTALL_DIR/Config"
 
-
-    # Crée Dolphin.ini uniquement s'il n'existe pas
+    # Crée Hotkeys.ini uniquement s'il n'existe pas
     if [[ ! -f "$hotkey_ini" ]]; then
-        echo "🆕 Création de Dolphin.ini avec le thème par défaut..."
+        echo "🆕 Création de Hotkeys.ini avec le raccourci par défaut..."
         {
             echo "[Hotkeys]"
             echo "General/Toggle Fullscreen = @(Alt+Return) | F11"
         } > "$hotkey_ini"
     else
-        echo "ℹ️ Dolphin.ini déjà présent — aucune modification."
+        echo "ℹ️ Hotkeys.ini déjà présent — aucune modification."
     fi
 }
 
