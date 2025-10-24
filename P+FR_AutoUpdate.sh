@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.7
+# Version : 2.5.8
 #
 # CHANGELOG
-# v2.5.7
+# v2.5.8
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.7"
+SCRIPT_VERSION="2.5.8"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -176,7 +176,7 @@ download_sd() {
 
     if [[ "$success" == false ]]; then
         echo "➡️  aria2c/rclone unavailable — fallback to wget..."
-        wget -O "$SD_PATH" "$SD_URL" && success=true
+        wget -c --timeout=30 --tries=3 --no-dns-cache --progress=bar:force:noscroll -O "$SD_PATH" "$SD_URL" && success=true
     fi
 
     if [[ "$success" == true ]]; then
@@ -201,6 +201,12 @@ download_appimage() {
     else
         echo "❌ AppImage download failed!"
     fi
+}
+
+download_zip() {
+    echo "⬇️ Download build..."
+    wget -c --timeout=30 --tries=3 --no-dns-cache --progress=bar:force:noscroll \
+         -O "$ZIP_PATH" "$ZIP_URL"
 }
 # ---------------------------
 # 🧰 EXTRACTION DU BUILD
