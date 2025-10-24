@@ -150,7 +150,7 @@ get_local_hash() {
 }
 
 # ---------------------------
-# 📦 TÉLÉCHARGEMENTS
+# 📦 TÉLÉCHARGEMENTS (corrigé)
 # ---------------------------
 
 download_sd() {
@@ -162,28 +162,46 @@ download_sd() {
         rm -f "$SD_PATH"
     fi
 
+    local success=false
+
     if command -v aria2c &>/dev/null; then
-        aria2c -x 16 -s 16 -o "sd.raw" -d "$(dirname "$SD_PATH")" "$SD_URL" && return
-        echo "⚠️ aria2 a échoué, tentative avec rclone..."
-    fi
-    if command -v rclone &>/dev/null; then
-        rclone copyurl "$SD_URL" "$SD_PATH" --multi-thread-streams=8 && return
-        echo "⚠️ rclone a échoué, tentative avec wget..."
+        echo "➡️  Using aria2c..."
+        aria2c -x 16 -s 16 -o "sd.raw" -d "$(dirname "$SD_PATH")" "$SD_URL" && success=true
     fi
 
-    wget -O "$SD_PATH" "$SD_URL"
+    if [[ "$success" == false && $(command -v rclone) ]]; then
+        echo "➡️  aria2c failed or missing, trying rclone..."
+        rclone copyurl "$SD_URL" "$SD_PATH" --multi-thread-streams=8 && success=true
+    fi
+
+    if [[ "$success" == false ]]; then
+        echo "➡️  aria2c/rclone unavailable — fallback to wget..."
+        wget -O "$SD_PATH" "$SD_URL" && success=true
+    fi
+
+    if [[ "$success" == true ]]; then
+        echo "✅ SD downloaded successfully."
+    else
+        echo "❌ Failed to download SD file."
+    fi
 }
 
 download_appimage() {
-    echo "⬇️ Download AppImage (HTTP)..."
-    wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
-}
+    echo "⬇️ Download AppImage..."
+    mkdir -p "$(dirname "$APPIMAGE_PATH")"
 
-download_zip() {
-    echo "⬇️ Download build (HTTP)..."
-    wget -O "$ZIP_PATH" "$ZIP_URL"
-}
+    if [[ -f "$APPIMAGE_PATH" ]]; then
+        echo "🧹 Removing old AppImage..."
+        rm -f "$APPIMAGE_PATH"
+    fi
 
+    echo "➡️  Using wget for AppImage (HTTP only)..."
+    if wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"; then
+        echo "✅ AppImage downloaded successfully."
+    else
+        echo "❌ AppImage download failed!"
+    fi
+}
 # ---------------------------
 # 🧰 EXTRACTION DU BUILD
 # ---------------------------
@@ -286,8 +304,7 @@ main() {
 
     # Si AppImage absente ou hash différent → nouvelle version
     if [[ ! -f "$APPIMAGE_PATH" || "$local_app_hash" != "$REMOTE_HASH" ]]; then
-        echo "🆕 New version"
-        echo "⬇️ Download SD..."
+        echo "🆕 New version Detected"
         download_sd
         echo "⬇️ DownloadAppImage..."
         download_appimage
