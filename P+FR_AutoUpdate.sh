@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.8
+# Version : 2.5.9
 #
 # CHANGELOG
-# v2.5.8
+# v2.5.9
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.8"
+SCRIPT_VERSION="2.5.9"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -297,8 +297,7 @@ main() {
     install_tool wget
     install_tool unzip
     install_tool curl
-    install_tool aria2c
-    install_tool rclone
+    
 
     mkdir -p "$INSTALL_DIR"
 
@@ -308,6 +307,9 @@ main() {
     # Si AppImage absente ou hash différent → nouvelle version
     if [[ ! -f "$APPIMAGE_PATH" || "$local_app_hash" != "$REMOTE_HASH" ]]; then
         echo "🆕 New version Detected"
+        install_tool aria2c
+        install_tool rclone
+        
         download_sd
         echo "⬇️ DownloadAppImage..."
         download_appimage
