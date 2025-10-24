@@ -239,9 +239,6 @@ Categories=Game;
 EOF
 
     chmod +x "$desktop_local"
-    cp "$desktop_local" "$desktop_user"
-    chmod +x "$desktop_user"
-    echo "✅ Raccourci créé : $desktop_user"
 }
 
 # ---------------------------
