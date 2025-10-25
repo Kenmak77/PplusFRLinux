@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.6.1
+# Version : 2.6.2
 #
 # CHANGELOG
-# v2.6.1
+# v2.6.2
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.1"
+SCRIPT_VERSION="2.6.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -315,17 +315,19 @@ download_default_configs() {
 # 🚀 Main
 # ---------------------------
 main() {
-    download_gamesettings_files
+    
     
     verify_script_update
-
+ 
     install_tool wget
     install_tool unzip
     install_tool curl
     
 
     mkdir -p "$INSTALL_DIR"
-
+    
+    download_gamesettings_files
+    
     local local_app_hash
     local_app_hash=$(get_local_hash "$APPIMAGE_PATH")
 
