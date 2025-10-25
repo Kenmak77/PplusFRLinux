@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.5.9
+# Version : 2.6
 #
 # CHANGELOG
-# v2.5.9
+# v2.6
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.5.9"
+SCRIPT_VERSION="2.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -95,6 +95,35 @@ verify_script_update() {
     rm -f "$tmp_script"
 }
 
+# ---------------------------
+# ⚙️  AJOUT DES FICHIERS DE GAMESETTINGS PAR DÉFAUT
+# ---------------------------
+download_gamesettings_files() {
+    local gamesettings_dir="$INSTALL_DIR/User/GameSettings"
+    mkdir -p "$gamesettings_dir"
+
+    local ID_NETPLAY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Netplay%20Launcher.ini"
+    local ID_OFFLINE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Offline%20Launcher.ini"
+
+    echo "🧩 Vérification des GameSettings..."
+
+    # Télécharge uniquement si les fichiers sont absents
+    if [[ ! -f "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" ]]; then
+        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        echo "✅ Fichier ajouté : ID-Project+FR Netplay Launcher.ini"
+    else
+        echo "✔️  ID-Project+FR Netplay Launcher.ini déjà présent"
+    fi
+
+    if [[ ! -f "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" ]]; then
+        wget -q -O "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
+        echo "✅ Fichier ajouté : ID-Project+FR Offline Launcher.ini"
+    else
+        echo "✔️  ID-Project+FR Offline Launcher.ini déjà présent"
+    fi
+
+    echo "✅ GameSettings vérifiés."
+}
 
 # -------------------------------
 # 🧰 INSTALLATION D’UN OUTIL MANQUANT (avec confirmation)
@@ -292,6 +321,8 @@ download_default_configs() {
 # 🚀 Main
 # ---------------------------
 main() {
+    download_gamesettings_files
+    
     verify_script_update
 
     install_tool wget
