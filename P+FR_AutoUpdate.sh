@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.6
+# Version : 2.6.1
 #
 # CHANGELOG
-# v2.6
+# v2.6.1
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6"
+SCRIPT_VERSION="2.6.1"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -99,7 +99,7 @@ verify_script_update() {
 # ⚙️  AJOUT DES FICHIERS DE GAMESETTINGS PAR DÉFAUT
 # ---------------------------
 download_gamesettings_files() {
-    local gamesettings_dir="$INSTALL_DIR/User/GameSettings"
+    local gamesettings_dir="$INSTALL_DIR/GameSettings"
     mkdir -p "$gamesettings_dir"
 
     local ID_NETPLAY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Netplay%20Launcher.ini"
@@ -110,19 +110,13 @@ download_gamesettings_files() {
     # Télécharge uniquement si les fichiers sont absents
     if [[ ! -f "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" ]]; then
         wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
-        echo "✅ Fichier ajouté : ID-Project+FR Netplay Launcher.ini"
-    else
-        echo "✔️  ID-Project+FR Netplay Launcher.ini déjà présent"
+        echo "File Add: ID-Project+FR Netplay Launcher.ini"
     fi
 
     if [[ ! -f "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" ]]; then
         wget -q -O "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
-        echo "✅ Fichier ajouté : ID-Project+FR Offline Launcher.ini"
-    else
-        echo "✔️  ID-Project+FR Offline Launcher.ini déjà présent"
+        echo "File Add : ID-Project+FR Offline Launcher.ini"
     fi
-
-    echo "✅ GameSettings vérifiés."
 }
 
 # -------------------------------
