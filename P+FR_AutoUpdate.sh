@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7"
+SCRIPT_VERSION="2.7.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -315,7 +315,7 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=Ishiiruka P+FR
-Exec=$INSTALL_DIR/P+FR/Ishiiruka/P+FR_Ishii.sh
+Exec=$INSTALL_DIR/Ishiiruka/P+FR_Ishii.sh
 Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
 Categories=Game;
