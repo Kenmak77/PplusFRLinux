@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.6.5
+# Version : 2.6.9
 #
 # CHANGELOG
-# v2.6.5
+# v2.6.9
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.8"
+SCRIPT_VERSION="2.6.9"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -108,7 +108,7 @@ verify_script_update() {
 download_gamesettings_files() {
     local gamesettings_dir="$INSTALL_DIR/GameSettings"
     local gamesettings_dir2="$INSTALL_DIR/Ishiiruka/GameSettings"
-    local gamesettings_dir3="$INSTALL_DIR"
+    local gamesettings_dir3="$INSTALL_DIR/Ishiiruka"
     mkdir -p "$gamesettings_dir"
     mkdir -p "$gamesettings_dir2"
 
@@ -231,7 +231,6 @@ download_sd() {
 
     if [[ "$success" == true ]]; then
         echo "✅ SD downloaded successfully."
-        ln -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     else
         echo "❌ Failed to download SD file."
     fi
@@ -269,12 +268,14 @@ extract_zip() {
 
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
-    ln -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/Launcher"
+    ln -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/"
+    
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
     mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Load/"* "$INSTALL_DIR/Ishiiruka/Load/" 2>/dev/null || true
+    ln -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
@@ -313,7 +314,7 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=Ishiiruka P+FR
-Exec=$INSTALL_DIR/P+FR_Ishii.sh
+Exec=$INSTALL_DIR/P/Ishiiruka/+FR_Ishii.sh
 Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
 Categories=Game;
@@ -347,15 +348,24 @@ launch_app() {
 # ---------------------------
 download_default_configs() {
     local config_dir="$INSTALL_DIR/Config"
+    local config_dir2="$INSTALL_DIR/Ishiiruka/Config"
+    
     mkdir -p "$config_dir"
+    mkdir -p "$config_dir2"
 
     local GFX_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/GFX.ini"
+    
     local DOLPHIN_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Dolphin.ini"
+    local DOLPHIN_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/Dolphin.ini"
+    
     local HOTKEYS_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/Hotkeys.ini"
     local WIIMOTE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/WiimoteNew.ini"
 
     [[ -f "$config_dir/GFX.ini" ]] || wget -q -O "$config_dir/GFX.ini" "$GFX_URL"
+    
     [[ -f "$config_dir/Dolphin.ini" ]] || wget -q -O "$config_dir/Dolphin.ini" "$DOLPHIN_URL"
+    [[ -f "$config_dir2/Dolphin.ini" ]] || wget -q -O "$config_dir2/Dolphin.ini" "$DOLPHIN_URL2"
+    
     [[ -f "$config_dir/Hotkeys.ini" ]] || wget -q -O "$config_dir/Hotkeys.ini" "$HOTKEYS_URL"
     [[ -f "$config_dir/WiimoteNew.ini" ]] || wget -q -O "$config_dir/WiimoteNew.ini" "$WIIMOTE_URL"
 
