@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.6.9
+# Version : 2.7
 #
 # CHANGELOG
-# v2.6.9
+# v2.7
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.9"
+SCRIPT_VERSION="2.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -268,6 +268,7 @@ extract_zip() {
 
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+    mkdir -p "$INSTALL_DIR/User"
     ln -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/"
     
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
@@ -314,7 +315,7 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=Ishiiruka P+FR
-Exec=$INSTALL_DIR/P/Ishiiruka/+FR_Ishii.sh
+Exec=$INSTALL_DIR/P+FR/Ishiiruka/P+FR_Ishii.sh
 Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
 Categories=Game;
