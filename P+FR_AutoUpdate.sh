@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.6"
+SCRIPT_VERSION="2.6.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -51,6 +51,7 @@ SD_PATH="$INSTALL_DIR/Wii/sd.raw"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
 UPDATE2_JSON="https://update.pplusfr.org/update2.json"
 SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P+FR_AutoUpdate.sh"
+SCRIPT_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/P%2BFR_Ishii.sh"
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
 ICON_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/P%2B%20frishii.png"
@@ -59,9 +60,9 @@ DOLPHIN_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/he
 GFX_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/GFX.ini"
 HOTKEYS_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Hotkeys.ini"
 
-DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/Dolphin.ini"
-GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/GFX.ini"
-HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/Hotkeys.ini"
+DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/Dolphin.ini"
+GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/GFX.ini"
+HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/Hotkeys.ini"
 
 # 🔹 Localisation du dossier Desktop selon la langue
 if [ -d "$HOME/Desktop" ]; then
@@ -107,6 +108,7 @@ verify_script_update() {
 download_gamesettings_files() {
     local gamesettings_dir="$INSTALL_DIR/GameSettings"
     local gamesettings_dir2="$INSTALL_DIR/Ishiiruka/GameSettings"
+    local gamesettings_dir3="$INSTALL_DIR"
     mkdir -p "$gamesettings_dir"
     mkdir -p "$gamesettings_dir2"
 
@@ -132,8 +134,14 @@ download_gamesettings_files() {
     fi
 
      if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_OFFLINE_URL"
         echo "File Add: ID-Project+FR Netplay Launcher.ini"
+
+    fi
+         if [[ ! -f "$gamesettings_dir3/P+FR_Ishii.sh" ]]; then
+        wget -q -O "$gamesettings_dir3/P+FR_Ishii.sh" "$SCRIPT_URL2"
+        echo "File Add: ID-Project+FR Netplay Launcher.ini"
+    
     fi
 }
 
@@ -223,6 +231,7 @@ download_sd() {
 
     if [[ "$success" == true ]]; then
         echo "✅ SD downloaded successfully."
+        ls -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     else
         echo "❌ Failed to download SD file."
     fi
@@ -260,6 +269,7 @@ extract_zip() {
 
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
+    ls -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/Launcher"
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
@@ -303,7 +313,7 @@ create_desktop_entry() {
 [Desktop Entry]
 Type=Application
 Name=Ishiiruka P+FR
-Exec=$INSTALL_DIR/$SCRIPT_NAME
+Exec=$INSTALL_DIR/P+FR_Ishii.sh
 Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
 Categories=Game;
