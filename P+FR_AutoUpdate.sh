@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.6.4
+# Version : 2.6.5
 #
 # CHANGELOG
-# v2.6.4
+# v2.6.5
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.4"
+SCRIPT_VERSION="2.6.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -108,6 +108,7 @@ download_gamesettings_files() {
     local gamesettings_dir="$INSTALL_DIR/GameSettings"
     local gamesettings_dir2="$INSTALL_DIR/Ishiiruka/GameSettings"
     mkdir -p "$gamesettings_dir"
+    mkdir -p "$gamesettings_dir2"
 
     local ID_NETPLAY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Netplay%20Launcher.ini"
     local ID_OFFLINE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Offline%20Launcher.ini"
