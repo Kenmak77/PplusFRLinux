@@ -43,6 +43,7 @@ fi
 # --- LANCEMENT DÉTACHÉ ---
 if [[ -f "$ISHII_APPIMAGE" ]]; then
     echo "✅ À jour. Lancement d'Ishiiruka..."
+    cd $HOME/.local/share/P+FR/Ishiiruka
     chmod +x "$ISHII_APPIMAGE"
     
     # Utiliser setsid pour détacher totalement le processus du terminal
