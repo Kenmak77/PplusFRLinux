@@ -59,9 +59,9 @@ DOLPHIN_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/he
 GFX_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/GFX.ini"
 HOTKEYS_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Hotkeys.ini"
 
-DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/Dolphin.ini"
-GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/GFX.ini"
-HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/Hotkeys.ini"
+DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/Dolphin.ini"
+GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/GFX.ini"
+HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruku/Hotkeys.ini"
 
 # 🔹 Localisation du dossier Desktop selon la langue
 if [ -d "$HOME/Desktop" ]; then
@@ -262,8 +262,8 @@ extract_zip() {
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
-    mv "$INSTALL_DIR/unzipped/Ishiiraku P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
-    mv "$INSTALL_DIR/unzipped/Ishiiraku P+FR/User/Load/"* "$INSTALL_DIR/Ishiiruka/Load/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Load/"* "$INSTALL_DIR/Ishiiruka/Load/" 2>/dev/null || true
     
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
@@ -295,13 +295,13 @@ EOF
 create_desktop_entry() {
     wget -nc -q -O "$INSTALL_DIR/P+ frishii.png" "$ICON_URL2"
 
-    local desktop_local="$INSTALL_DIR/Ishiiraku P+FR.desktop"
-    local desktop_user="$DESKTOP_PATH/Ishiiraku P+FR.desktop"
+    local desktop_local="$INSTALL_DIR/Ishiiruka P+FR.desktop"
+    local desktop_user="$DESKTOP_PATH/Ishiiruka P+FR.desktop"
 
     cat > "$desktop_local" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Ishiraku P+FR
+Name=Ishiiruka P+FR
 Exec=$INSTALL_DIR/$SCRIPT_NAME
 Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
