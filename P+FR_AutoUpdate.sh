@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.7"
+SCRIPT_VERSION="2.6.8"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -231,7 +231,7 @@ download_sd() {
 
     if [[ "$success" == true ]]; then
         echo "✅ SD downloaded successfully."
-        ls -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
+        ln -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     else
         echo "❌ Failed to download SD file."
     fi
@@ -269,7 +269,7 @@ extract_zip() {
 
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
-    ls -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/Launcher"
+    ln -s "$INSTALL_DIR/Launcher/" "$INSTALL_DIR/User/Launcher"
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
