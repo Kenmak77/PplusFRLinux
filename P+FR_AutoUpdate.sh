@@ -45,6 +45,7 @@ SCRIPT_VERSION="2.6.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
+APPIMAGE_PATH2="$INSTALL_DIR/Ishiiruka/IshiirukaP+FR.appimage"
 ZIP_PATH="$INSTALL_DIR/P+FR_Netplay2.zip"
 SD_PATH="$INSTALL_DIR/Wii/sd.raw"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
@@ -52,10 +53,15 @@ UPDATE2_JSON="https://update.pplusfr.org/update2.json"
 SCRIPT_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P+FR_AutoUpdate.sh"
 SCRIPT_NAME="P+FR_AutoUpdate.sh"
 ICON_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/main/P%2B%20fr.png"
+ICON_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/P%2B%20frishii.png"
 
 DOLPHIN_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Dolphin.ini"
 GFX_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/GFX.ini"
 HOTKEYS_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Hotkeys.ini"
+
+DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/Dolphin.ini"
+GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/GFX.ini"
+HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiraku/Hotkeys.ini"
 
 # 🔹 Localisation du dossier Desktop selon la langue
 if [ -d "$HOME/Desktop" ]; then
@@ -100,6 +106,7 @@ verify_script_update() {
 # ---------------------------
 download_gamesettings_files() {
     local gamesettings_dir="$INSTALL_DIR/GameSettings"
+    local gamesettings_dir2="$INSTALL_DIR/Ishiiruka/GameSettings"
     mkdir -p "$gamesettings_dir"
 
     local ID_NETPLAY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Netplay%20Launcher.ini"
@@ -116,6 +123,16 @@ download_gamesettings_files() {
     if [[ ! -f "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" ]]; then
         wget -q -O "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
         echo "File Add : ID-Project+FR Offline Launcher.ini"
+    fi
+
+     if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
+        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        echo "File Add: ID-Project+FR Netplay Launcher.ini"
+    fi
+
+     if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
+        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        echo "File Add: ID-Project+FR Netplay Launcher.ini"
     fi
 }
 
@@ -161,6 +178,7 @@ get_json_value() {
 }
 
 APPIMAGE_URL=$(get_json_value "$UPDATE_JSON" "download-linux-appimage")
+APPIMAGE_URL2=$(get_json_value "$UPDATE_JSON" "download-linux-appimage-ishii")
 ZIP_URL=$(curl -s "$UPDATE2_JSON" | grep -oP '"browser_download_url"\s*:\s*"\K[^"]+' | head -1)
 REMOTE_HASH=$(get_json_value "$UPDATE2_JSON" "hash-linux")
 SD_URL=$(get_json_value "$UPDATE_JSON" "download-sd")
@@ -220,6 +238,7 @@ download_appimage() {
 
     echo "➡️  Using wget for AppImage (HTTP only)..."
     if wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"; then
+       wget -O "$APPIMAGE_PATH2" "$APPIMAGE_URL2"; then
         echo "✅ AppImage downloaded successfully."
     else
         echo "❌ AppImage download failed!"
@@ -241,8 +260,11 @@ extract_zip() {
     mkdir -p "$INSTALL_DIR"/{Load,Launcher,Config}
     mv "$INSTALL_DIR/unzipped/user/Launcher/"* "$INSTALL_DIR/Launcher/" 2>/dev/null || true
     mv "$INSTALL_DIR/unzipped/user/Load/"* "$INSTALL_DIR/Load/" 2>/dev/null || true
-    mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true
-
+    mv "$INSTALL_DIR/unzipped/user/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
+    
+    mv "$INSTALL_DIR/unzipped/Ishiiraku P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
+    mv "$INSTALL_DIR/unzipped/Ishiiraku P+FR/User/Load/"* "$INSTALL_DIR/Ishiiruka/Load/" 2>/dev/null || true
+    
     rm -rf "$INSTALL_DIR/unzipped"
     rm -f "$ZIP_PATH"
 }
@@ -263,6 +285,25 @@ Type=Application
 Name=P+FR
 Exec=$INSTALL_DIR/$SCRIPT_NAME
 Icon=$INSTALL_DIR/P+ fr.png
+Terminal=true
+Categories=Game;
+EOF
+
+    chmod +x "$desktop_local"
+}
+
+create_desktop_entry() {
+    wget -nc -q -O "$INSTALL_DIR/P+ frishii.png" "$ICON_URL2"
+
+    local desktop_local="$INSTALL_DIR/Ishiiraku P+FR.desktop"
+    local desktop_user="$DESKTOP_PATH/Ishiiraku P+FR.desktop"
+
+    cat > "$desktop_local" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Ishiraku P+FR
+Exec=$INSTALL_DIR/$SCRIPT_NAME
+Icon=$INSTALL_DIR/P+ frishii.png
 Terminal=true
 Categories=Game;
 EOF
