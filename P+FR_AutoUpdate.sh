@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.6.5"
+SCRIPT_VERSION="2.6.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -127,12 +127,12 @@ download_gamesettings_files() {
     fi
 
      if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
         echo "File Add: ID-Project+FR Netplay Launcher.ini"
     fi
 
      if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
         echo "File Add: ID-Project+FR Netplay Launcher.ini"
     fi
 }
