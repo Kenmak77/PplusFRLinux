@@ -5,10 +5,10 @@
 # ======================================================
 # Compatible : Ubuntu, Linux Mint, Arch, Manjaro, Fedora
 # Author : Kenmak77
-# Version : 2.7
+# Version : 2.8
 #
 # CHANGELOG
-# v2.7
+# v2.8
 # - Téléchargement SD multi-méthode (aria2c → rclone → wget)
 # - AppImage & ZIP forcés en HTTP (wget)
 # - SD téléchargée avant AppImage
@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.3"
+SCRIPT_VERSION="2.7.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -275,7 +275,8 @@ extract_zip() {
     mv "$INSTALL_DIR/unzipped/User/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
     mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
-    mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Load/"* "$INSTALL_DIR/Ishiiruka/Load/" 2>/dev/null || true
+    
+    ln -s "$INSTALL_DIR/unzipped/User/Load/" "$INSTALL_DIR/Ishiiruka/" 
     ln -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     
     rm -rf "$INSTALL_DIR/unzipped"
