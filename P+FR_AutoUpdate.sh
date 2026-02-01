@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.7"
+SCRIPT_VERSION="2.7.8"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -106,20 +106,22 @@ verify_script_update() {
 # ---------------------------
 # ⚙️  AJOUT DES FICHIERS DE GAMESETTINGS PAR DÉFAUT
 # ---------------------------
+# ---------------------------
 download_gamesettings_files() {
     local gamesettings_dir="$INSTALL_DIR/GameSettings"
     local gamesettings_dir2="$INSTALL_DIR/Ishiiruka/GameSettings"
     local gamesettings_dir3="$INSTALL_DIR/Ishiiruka"
+    
+    # Création des dossiers s'ils n'existent pas
     mkdir -p "$gamesettings_dir"
     mkdir -p "$gamesettings_dir2"
+    mkdir -p "$gamesettings_dir3"
 
     local ID_NETPLAY_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Netplay%20Launcher.ini"
     local ID_OFFLINE_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/ID-Project%2BFR%20Offline%20Launcher.ini"
 
-    echo "🧩 Vérification des GameSettings..."
+    echo "🧩 Mise à jour des GameSettings..."
 
-    # Téléchargement systématique (écrase les fichiers existants)
-{
     # Dossier 1
     wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
     echo "Update : ID-Project+FR Netplay Launcher.ini"
@@ -132,12 +134,12 @@ download_gamesettings_files() {
     echo "Update : ID-Project+FR Netplay Launcher.ini (Dir 2)"
 
     wget -q -O "$gamesettings_dir2/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
-    echo "Update: ID-Project+FR Offline Launcher.ini (Dir 2)"
+    echo "Update : ID-Project+FR Offline Launcher.ini (Dir 2)"
 
     # Dossier 3
     wget -q -O "$gamesettings_dir3/P+FR_Ishii.sh" "$SCRIPT_URL2"
     echo "Update : P+FR_Ishii.sh"
-}
+} # <--- L'accolade manquante était ici
 
 # -------------------------------
 # 🧰 INSTALLATION D’UN OUTIL MANQUANT (avec confirmation)
