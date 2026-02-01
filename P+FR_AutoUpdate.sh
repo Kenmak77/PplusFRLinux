@@ -41,11 +41,11 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.5"
+SCRIPT_VERSION="2.7.6"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
-APPIMAGE_PATH2="$INSTALL_DIR/Ishiiruka/IshiirukaP+FR.appimage"
+APPIMAGE_PATH2="$INSTALL_DIR/Ishiiruka/IshiirukaP+FR.Appimage"
 ZIP_PATH="$INSTALL_DIR/P+FR_Netplay2.zip"
 SD_PATH="$INSTALL_DIR/Wii/sd.raw"
 UPDATE_JSON="https://update.pplusfr.org/update.json"
