@@ -5,7 +5,7 @@
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 MAIN_APPIMAGE="$INSTALL_DIR/P+FR.AppImage"
-ISHII_APPIMAGE="$INSTALL_DIR/Ishiiruka/IshiirukaP+FR.appimage"
+ISHII_APPIMAGE="$INSTALL_DIR/Ishiiruka/IshiirukaP+FR.Appimage"
 SCRIPT_PATH="$INSTALL_DIR/P+FR_AutoUpdate.sh"
 UPDATE2_JSON="https://update.pplusfr.org/update2.json"
 
