@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.4"
+SCRIPT_VERSION="2.7.5"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -63,6 +63,7 @@ HOTKEYS_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/he
 DOLPHIN_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/Dolphin.ini"
 GFX_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/GFX.ini"
 HOTKEYS_INI_URL2="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/Ishiiruka/Hotkeys.ini"
+WIIMOTE_INI_URL="https://raw.githubusercontent.com/Kenmak77/PplusFRLinux/refs/heads/main/WiimoteNew.ini"
 
 # 🔹 Localisation du dossier Desktop selon la langue
 if [ -d "$HOME/Desktop" ]; then
@@ -369,7 +370,9 @@ download_default_configs() {
     [[ -f "$config_dir2/Dolphin.ini" ]] || wget -q -O "$config_dir2/Dolphin.ini" "$DOLPHIN_URL2"
     
     [[ -f "$config_dir/Hotkeys.ini" ]] || wget -q -O "$config_dir/Hotkeys.ini" "$HOTKEYS_URL"
+    
     [[ -f "$config_dir/WiimoteNew.ini" ]] || wget -q -O "$config_dir/WiimoteNew.ini" "$WIIMOTE_URL"
+    [[ -f "$config_dir2/WiimoteNew.ini" ]] || wget -q -O "$config_dir/WiimoteNew.ini" "$WIIMOTE_URL"
 
     echo "✅ Configs checked"
 }
