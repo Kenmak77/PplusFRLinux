@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.6"
+SCRIPT_VERSION="2.7.7"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -118,32 +118,25 @@ download_gamesettings_files() {
 
     echo "🧩 Vérification des GameSettings..."
 
-    # Télécharge uniquement si les fichiers sont absents
-    if [[ ! -f "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
-        echo "File Add: ID-Project+FR Netplay Launcher.ini"
-    fi
+    # Téléchargement systématique (écrase les fichiers existants)
+{
+    # Dossier 1
+    wget -q -O "$gamesettings_dir/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+    echo "Update : ID-Project+FR Netplay Launcher.ini"
 
-    if [[ ! -f "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
-        echo "File Add : ID-Project+FR Offline Launcher.ini"
-    fi
+    wget -q -O "$gamesettings_dir/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
+    echo "Update : ID-Project+FR Offline Launcher.ini"
 
-     if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
-        echo "File Add: ID-Project+FR Netplay Launcher.ini"
-    fi
+    # Dossier 2
+    wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_NETPLAY_URL"
+    echo "Update : ID-Project+FR Netplay Launcher.ini (Dir 2)"
 
-     if [[ ! -f "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" ]]; then
-        wget -q -O "$gamesettings_dir2/ID-Project+FR Netplay Launcher.ini" "$ID_OFFLINE_URL"
-        echo "File Add: ID-Project+FR Netplay Launcher.ini"
+    wget -q -O "$gamesettings_dir2/ID-Project+FR Offline Launcher.ini" "$ID_OFFLINE_URL"
+    echo "Update: ID-Project+FR Offline Launcher.ini (Dir 2)"
 
-    fi
-         if [[ ! -f "$gamesettings_dir3/P+FR_Ishii.sh" ]]; then
-        wget -q -O "$gamesettings_dir3/P+FR_Ishii.sh" "$SCRIPT_URL2"
-        echo "File Add: ID-Project+FR Netplay Launcher.ini"
-    
-    fi
+    # Dossier 3
+    wget -q -O "$gamesettings_dir3/P+FR_Ishii.sh" "$SCRIPT_URL2"
+    echo "Update : P+FR_Ishii.sh"
 }
 
 # -------------------------------
