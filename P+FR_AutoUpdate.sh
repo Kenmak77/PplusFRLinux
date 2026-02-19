@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.9.1"
+SCRIPT_VERSION="2.7.9.2"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -271,8 +271,9 @@ extract_zip() {
     mv "$INSTALL_DIR/unzipped/User/Wii/title" "$INSTALL_DIR/Wii/" 2>/dev/null || true  
     
     mv "$INSTALL_DIR/unzipped/Ishiiruka P+FR/User/Wii/title" "$INSTALL_DIR/Ishiiruka/Wii/" 2>/dev/null || true
+
     
-    ln -s "$INSTALL_DIR/Load/Textures/RSBE01/" "$INSTALL_DIR/Ishiiruka/Load/Textures/" 
+    ln -s "$INSTALL_DIR/Load/" "$INSTALL_DIR/User/" 
     ln -s "$INSTALL_DIR/Wii/sd.raw" "$INSTALL_DIR/Ishiiruka/Wii/"
     ln -s "$INSTALL_DIR/Wii/" "$INSTALL_DIR/User/"
     
