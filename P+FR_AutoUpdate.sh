@@ -41,7 +41,7 @@ fi
 # -----------------------
 # 🔧 CONFIGURATION DE BASE
 # -----------------------
-SCRIPT_VERSION="2.7.9.3"
+SCRIPT_VERSION="2.7.9.4"
 
 INSTALL_DIR="$HOME/.local/share/P+FR"
 APPIMAGE_PATH="$INSTALL_DIR/P+FR.AppImage"
@@ -283,13 +283,13 @@ extract_zip() {
 
 
 # ---------------------------
-# 🖥️ RACCOURCI .DESKTOP
+# 🖥️ RACCOURCI 1 : P+ FR
 # ---------------------------
-create_desktop_entry() {
+create_desktop_p_plus() {
     wget -nc -q -O "$INSTALL_DIR/P+ fr.png" "$ICON_URL"
 
     local desktop_local="$INSTALL_DIR/P+FR.desktop"
-    local desktop_user="$DESKTOP_PATH/P+FR.desktop"
+    # Note : Assurez-vous d'utiliser desktop_user plus tard si nécessaire
 
     cat > "$desktop_local" <<EOF
 [Desktop Entry]
@@ -304,11 +304,13 @@ EOF
     chmod +x "$desktop_local"
 }
 
-create_desktop_entry() {
+# ---------------------------
+# 🖥️ RACCOURCI 2 : ISHIIRUKA
+# ---------------------------
+create_desktop_ishii() {
     wget -nc -q -O "$INSTALL_DIR/P+ frishii.png" "$ICON_URL2"
 
     local desktop_local="$INSTALL_DIR/Ishiiruka P+FR.desktop"
-    local desktop_user="$DESKTOP_PATH/Ishiiruka P+FR.desktop"
 
     cat > "$desktop_local" <<EOF
 [Desktop Entry]
@@ -322,6 +324,7 @@ EOF
 
     chmod +x "$desktop_local"
 }
+
 
 # ---------------------------
 # 🎮 LANCEMENT DU JEU
@@ -416,7 +419,8 @@ main() {
 
     download_default_configs
      
-    create_desktop_entry
+    create_desktop_p_plus
+    create_desktop_ishii
 
     echo -e "\n✅ Installation complete !"
     echo "🚀 Lancement de P+FR..."
